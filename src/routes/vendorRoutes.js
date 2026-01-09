@@ -87,7 +87,7 @@ router.post(
     { name: 'profileImg', maxCount: 1 },
     { name: 'panImage', maxCount: 1 },
     { name: 'gstImage', maxCount: 1 },
-    { name: 'groceryImage', maxCount: 1 },
+    { name: 'foodImage', maxCount: 1 },
     { name: 'passbook', maxCount: 1 }
   ]),
   signUp
@@ -104,7 +104,7 @@ router.patch(
   fileUploader('vendor', [
     { name: 'panImage', maxCount: 1 },
     { name: 'gstImage', maxCount: 1 },
-    { name: 'groceryImage', maxCount: 1 }
+    { name: 'foodImage', maxCount: 1 }
   ]),
   updateVendorDocument
 );

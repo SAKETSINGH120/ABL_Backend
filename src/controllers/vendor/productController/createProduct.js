@@ -51,7 +51,6 @@ exports.createProduct = catchAsync(async (req, res, next) => {
         primaryImage = ""
     }
 
-
     let product = new Product({
         name,
         categoryId,
@@ -74,7 +73,7 @@ exports.createProduct = catchAsync(async (req, res, next) => {
     });
 
     await product.save();
-
+ 
     return res.status(201).json({
         status: true,
         message: "Product added successfully.",

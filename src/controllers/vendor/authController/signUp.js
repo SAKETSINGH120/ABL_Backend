@@ -10,7 +10,7 @@ exports.signUp = catchAsync(async (req, res, next) => {
   const profileImg = files.profileImg && files.profileImg[0] ? files.profileImg[0].path : '';
   const panImage = files.panImage && files.panImage[0] ? files.panImage[0].path : '';
   const gstImage = files.gstImage && files.gstImage[0] ? files.gstImage[0].path : '';
-  const groceryImage = files.groceryImage && files.groceryImage[0] ? files.groceryImage[0].path : '';
+  const foodImage = files.foodImage && files.foodImage[0] ? files.foodImage[0].path : '';
   const passbook = files.passbook && files.passbook[0] ? files.passbook[0].path : '';
 
   userId = userId.toLowerCase();
@@ -23,7 +23,7 @@ exports.signUp = catchAsync(async (req, res, next) => {
   if (!panImage) return next(new AppError('PAN image is required.', 400));
 
   const vendoruserId = await Vendor.findOne({ userId });
-  if (vendoruserId) return next(new AppError('User Id is already exists. Plz enter different User Id.', 400));
+  if (vendoruserId) return next(new AppError('User Id is already exists. Plz enter different User Id', 400));
   const vendorMobile = await Vendor.findOne({ mobile });
   if (vendorMobile) return next(new AppError('Mobile No is already exists. Plz enter different Mobile No.', 400));
 
@@ -43,7 +43,7 @@ exports.signUp = catchAsync(async (req, res, next) => {
     foodLicense,
     panImage,
     gstImage,
-    groceryImage,
+    foodImage,
     ifsc,
     bankName,
     branchName,

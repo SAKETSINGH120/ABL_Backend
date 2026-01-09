@@ -17,7 +17,7 @@ const vendorSchema = new mongoose.Schema(
     foodLicense: { type: String, default: '0' },
     panImage: { type: String, default: '' },
     gstImage: { type: String, default: '0' },
-    groceryImage: { type: String, default: '' },
+    foodImage: { type: String, default: '' },
 
     // BANK DETAILS (now handled in Vendor model directly)
     ifsc: { type: String, default: '' },

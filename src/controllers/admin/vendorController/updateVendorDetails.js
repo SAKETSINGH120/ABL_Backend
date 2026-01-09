@@ -23,7 +23,7 @@ exports.updateVendorDetails = catchAsync(async (req, res, next) => {
   if (isValid(payoutType)) vendor.payoutType = payoutType;
   if (req.files && req.files.panImage) vendor.panImage = req.files.panImage[0].path;
   if (req.files && req.files.gstImage) vendor.gstImage = req.files.gstImage[0].path;
-  if (req.files && req.files.groceryImage) vendor.groceryImage = req.files.groceryImage[0].path;
+  if (req.files && req.files.foodImage) vendor.foodImage = req.files.foodImage[0].path;
 
   await vendor.save();
 

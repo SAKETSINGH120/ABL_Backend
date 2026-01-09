@@ -20,8 +20,8 @@ exports.updateVendorDocument = catchAsync(async (req, res, next) => {
     if (req.files.gstImage) {
       vendor.gstImage = req.files.gstImage[0].path;
     }
-    if (req.files.groceryImage) {
-      vendor.groceryImage = req.files.groceryImage[0].path;
+    if (req.files.foodImage) {
+      vendor.foodImage = req.files.foodImage[0].path;
     }
     await vendor.save();
 
