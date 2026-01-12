@@ -2,9 +2,9 @@ const mongoose = require('mongoose');
 
 const shopSchema = new mongoose.Schema({
   name: { type: String },
-  serviceId: { type: mongoose.Schema.Types.ObjectId, ref: 'Service' },
+  // serviceId: { type: mongoose.Schema.Types.ObjectId, ref: 'Service' },
   vendorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vendor' },
-  shopType: { type: String, enum: ['veg', 'nonveg', 'both'], default: 'veg' },
+  // shopType: { type: String, enum: ['veg', 'nonveg', 'both'], default: 'veg' },
   shopImage: { type: String, default: '' },
   address: { type: String, default: '' },
   pincode: { type: String, default: '' },

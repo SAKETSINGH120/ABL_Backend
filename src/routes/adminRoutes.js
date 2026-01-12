@@ -113,6 +113,9 @@ const { createPermission, getAllPermissions, getPermissionById, updatePermission
 const { createRole, getAllRoles, getRoleById, updateRole, deleteRole } = require('../controllers/admin/rolePremissionController/roleController');
 const { getAllAdmins, createAdmin, getAdminById, updateAdmin, deleteAdmin } = require('../controllers/admin/rolePremissionController/adminController');
 
+// Variant Type
+const { createVariantType, getAllVariantTypes, getVariantTypeById, updateVariantType, deleteVariantType } = require('../controllers/admin/variantTypeController/variantTypeController');
+
 const router = express.Router();
 
 router.get('/test/admin', (req, res) => {
@@ -403,5 +406,14 @@ router.delete('/deleteadmin/:id', adminAuthenticate, deleteAdmin);
 router.get('/cms', getCms);
 router.post('/cms', adminAuthenticate, addCms);
 router.patch('/cms/:id', adminAuthenticate, updateCms);
+
+//------------------------------------------------
+// Variant Type
+//------------------------------------------------
+router.post('/variant-type', adminAuthenticate, createVariantType);
+router.get('/variant-type', adminAuthenticate, getAllVariantTypes);
+router.get('/variant-type/:id', adminAuthenticate, getVariantTypeById);
+router.patch('/variant-type/:id', adminAuthenticate, updateVariantType);
+router.delete('/variant-type/:id', adminAuthenticate, deleteVariantType);
 
 module.exports = router;

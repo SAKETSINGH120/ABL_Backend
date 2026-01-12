@@ -1,34 +1,80 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
-const CartItemSchema = new Schema({
-    productId: { type: Schema.Types.ObjectId, ref: "VendorProduct", required: true },
+// const CartItemSchema = new Schema({
+//     productId: { type: Schema.Types.ObjectId, ref: "VendorProduct", required: true },
+//     price: { type: Number, required: true, min: 0 },
+//     quantity: { type: Number, required: true, min: 1, default: 1 },
+//     // toppings: [
+//     //     {
+//     //         toppingId: { type: Schema.Types.ObjectId, ref: "Toppins", required: true },
+//     //         price: { type: Number, required: true, min: 0 }
+//     //     }
+//     // ],
+//     finalPrice: { type: Number, required: true, min: 0 }
+// }, { _id: false });
+
+// const ShopCartSchema = new Schema({
+//     shopId: { type: Schema.Types.ObjectId, ref: "Shop", required: true },
+//     vendorId: { type: Schema.Types.ObjectId, ref: "Vendor", required: true },
+//     items: [CartItemSchema]
+// }, { _id: false });
+
+// const CartSchema = new Schema({
+//     userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
+//     // serviceType: { type: String, enum: ["food", "grocery"], default: "food" },
+//     shops: [ShopCartSchema],
+//     status: {
+//         type: String,
+//         enum: ["active", "ordered", "abandoned"],
+//         default: "active"
+//     }
+// }, { timestamps: true });
+
+// module.exports = mongoose.model("newCart", CartSchema);
+
+const CartItemSchema = new Schema(
+  {
+    productId: {
+      type: Schema.Types.ObjectId,
+      ref: 'VendorProduct',
+      required: true
+    },
     price: { type: Number, required: true, min: 0 },
-    quantity: { type: Number, required: true, min: 1, default: 1 },
-    toppings: [
-        {
-            toppingId: { type: Schema.Types.ObjectId, ref: "Toppins", required: true },
-            price: { type: Number, required: true, min: 0 }
-        }
-    ],
+    quantity: { type: Number, default: 1, min: 1 },
     finalPrice: { type: Number, required: true, min: 0 }
-}, { _id: false });
+  },
+  { _id: false }
+);
 
-const ShopCartSchema = new Schema({
-    shopId: { type: Schema.Types.ObjectId, ref: "Shop", required: true },
-    vendorId: { type: Schema.Types.ObjectId, ref: "Vendor", required: true },
-    items: [CartItemSchema]
-}, { _id: false });
+const CartSchema = new Schema(
+  {
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+      index: true
+    },
 
-const CartSchema = new Schema({
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true, index: true },
-    serviceType: { type: String, enum: ["food", "grocery"], default: "food" },
-    shops: [ShopCartSchema],
+    vendorId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Vendor',
+      required: true,
+      index: true
+    },
+
+    items: {
+      type: [CartItemSchema],
+      default: []
+    },
+
     status: {
-        type: String,
-        enum: ["active", "ordered", "abandoned"],
-        default: "active"
+      type: String,
+      enum: ['active', 'ordered', 'abandoned'],
+      default: 'active'
     }
-}, { timestamps: true });
+  },
+  { timestamps: true }
+);
 
-module.exports = mongoose.model("newCart", CartSchema);
+module.exports = mongoose.model('newCart', CartSchema);

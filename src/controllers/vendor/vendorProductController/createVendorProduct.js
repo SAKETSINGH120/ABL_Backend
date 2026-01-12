@@ -1,82 +1,97 @@
-const Product = require("../../../models/product");
-const VendorProduct = require("../../../models/vendorProduct");
-const AppError = require("../../../utils/AppError");
-const catchAsync = require("../../../utils/catchAsync");
+const Product = require('../../../models/product');
+const VendorProduct = require('../../../models/vendorProduct');
+const AppError = require('../../../utils/AppError');
+const catchAsync = require('../../../utils/catchAsync');
 
 const validateRequiredField = (field, fieldName) => {
-    if (!field || !field.trim()) return new AppError(`${fieldName} is required.`, 400);
-    return null;
+  if (!field || !field.trim()) return new AppError(`${fieldName} is required.`, 400);
+  return null;
 };
 
 exports.createVendorProduct = catchAsync(async (req, res, next) => {
-    let { name, categoryId, subCategoryId, shopId, mrp, sellingPrice, unitOfMeasurement, sellingUnit, shortDescription, longDescription, serviceId, type,addedBy } = req.body;
+  let { name, categoryId, subCategoryId, shopId, mrp, sellingPrice, unitOfMeasurement, sellingUnit, shortDescription, longDescription, type, addedBy } = req.body;
 
-    const requiredFields = [
-        { field: name, name: "Product name" },
-        { field: categoryId, name: "Category ID" },
-        { field: mrp, name: "MRP" },
-        { field: sellingPrice, name: "Selling price" },
-        { field: unitOfMeasurement, name: "Unit of measurement" },
-        { field: sellingUnit, name: "Selling unit" },
-        { field: shortDescription, name: "Short Description" },
-        { field: longDescription, name: "Long Description" },
-        { field: serviceId, name: "Service Type" },
-    ];
+  const variants = req.body.variant || [];
 
-    for (const { field, name } of requiredFields) {
-        const error = validateRequiredField(field, name);
-        if (error) return next(error);
-    }
+  const requiredFields = [
+    { field: name, name: 'Product name' },
+    { field: categoryId, name: 'Category ID' },
+    { field: mrp, name: 'MRP' },
+    { field: sellingPrice, name: 'Selling price' },
+    { field: unitOfMeasurement, name: 'Unit of measurement' },
+    { field: sellingUnit, name: 'Selling unit' },
+    { field: shortDescription, name: 'Short Description' },
+    { field: longDescription, name: 'Long Description' }
+    // { field: serviceId, name: 'Service Type' }
+  ];
 
-    const vendorId = req.vendor._id;
-    if (!vendorId) return next(new AppError("Vendor ID is required.", 400));
+  for (const { field, name } of requiredFields) {
+    const error = validateRequiredField(field, name);
+    if (error) return next(error);
+  }
 
-    // let skuProduct = await Product.findOne({ sku });
-    // if (skuProduct) return next(new AppError("SKU is already exists. Plz enter different SKU No.", 400));
+  const vendorId = req.vendor._id;
+  if (!vendorId) return next(new AppError('Vendor ID is required.', 400));
 
-    let galleryimagePaths;
-    if (req.files && req.files.gallery_image) {
-        const imagesUrls = req.files.gallery_image.map((file) => {
-            return `${file.destination}/${file.filename}`;
-        });
-        galleryimagePaths = imagesUrls;
-    }
+  // let skuProduct = await Product.findOne({ sku });
+  // if (skuProduct) return next(new AppError("SKU is already exists. Plz enter different SKU No.", 400));
 
-    // primary_image
-    let primaryImage;
-    if (req.files && req.files.primary_image) {
-        const url = `${req.files.primary_image[0].destination}/${req.files.primary_image[0].filename}`;
-        primaryImage = url;
-    } else {
-        primaryImage = ""
-    }
-
-
-    let product = new VendorProduct({
-        name,
-        categoryId,
-        subCategoryId: subCategoryId || null,
-        vendorId,
-        shopId,
-        primary_image: primaryImage,
-        gallery_image: galleryimagePaths,
-        mrp,
-        vendorSellingPrice: sellingPrice,
-        unitOfMeasurement,
-        sellingUnit,
-        shortDescription,
-        longDescription,
-        serviceId,
-        type,
-        // addedBy
+  let galleryimagePaths;
+  if (req.files && req.files.gallery_image) {
+    const imagesUrls = req.files.gallery_image.map((file) => {
+      return `${file.destination}/${file.filename}`;
     });
+    galleryimagePaths = imagesUrls;
+  }
 
-    await product.save();
+  // primary_image
+  let primaryImage;
+  if (req.files && req.files.primary_image) {
+    const url = `${req.files.primary_image[0].destination}/${req.files.primary_image[0].filename}`;
+    primaryImage = url;
+  } else {
+    primaryImage = '';
+  }
 
-    return res.status(201).json({
-        status: true,
-        message: "Product added successfully.",
-        data: { product },
-        newProduct: true,
-    });
+  // Process variants array to match schema
+  const processedVariants = variants.map((variant) => ({
+    variantTypeId: variant.variantId,
+    sku: variant.sku || '',
+    variantName: variant.variantName || '',
+    mrp: variant.mrpforVariant,
+    sellingPrice: variant.sellingPricefprVariant,
+    unitOfMeasurement: variant.unitOfMeasurement || unitOfMeasurement,
+    sellingUnit: variant.sellingUnitForVariant,
+    stock: variant.stockForVariant || 0,
+    status: variant.statusOfVariants || 'active'
+  }));
+
+  let product = new VendorProduct({
+    name,
+    categoryId,
+    subCategoryId: subCategoryId || null,
+    vendorId,
+    shopId,
+    primary_image: primaryImage,
+    gallery_image: galleryimagePaths,
+    mrp,
+    vendorSellingPrice: sellingPrice,
+    unitOfMeasurement,
+    sellingUnit,
+    shortDescription,
+    longDescription,
+    // serviceId,
+    type,
+    // addedBy
+    variants: processedVariants
+  });
+
+  await product.save();
+
+  return res.status(201).json({
+    status: true,
+    message: 'Product added successfully.',
+    data: { product },
+    newProduct: true
+  });
 });

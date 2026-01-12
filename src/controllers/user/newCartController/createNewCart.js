@@ -1,208 +1,207 @@
-const VendorProduct = require("../../../models/vendorProduct");
-const Shop = require("../../../models/shop");
-const newCart = require("../../../models/newCart");
-const User = require("../../../models/user");
+// const VendorProduct = require('../../../models/vendorProduct');
+// const Shop = require('../../../models/shop');
+// const newCart = require('../../../models/newCart');
+// const User = require('../../../models/user');
+
+const VendorProduct = require('../../../models/vendorProduct');
+const newCart = require('../../../models/newCart');
+const User = require('../../../models/user');
 
 exports.createNewCart = async (req, res) => {
   try {
     const userId = req.user.id;
-    const {
-      productId,
-      price,
-      quantity = 1,
-      toppings = [], // [{ toppingId, price }]
-    } = req.body;
+    const { productId, price, quantity = 1 } = req.body;
 
-    // Basic validations
-    if (!productId || typeof price !== "number" || price < 0 || quantity < 1) {
-      return res
-        .status(400)
-        .json({ message: "Invalid product or price or quantity." });
-    }
-
-    for (const t of toppings) {
-      if (!t.toppingId || typeof t.price !== "number" || t.price < 0) {
-        return res.status(400).json({ message: "Invalid topping data." });
-      }
+    // 🔹 Basic validation
+    if (!productId || typeof price !== 'number' || price < 0 || quantity < 1) {
+      return res.status(400).json({ message: 'Invalid product, price, or quantity.' });
     }
 
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: "User not found." });
+      return res.status(404).json({ message: 'User not found.' });
     }
 
-    // Get shop & vendor from product
-    const product = await VendorProduct.findById(productId).populate(
-      "shopId vendorId"
-    );
-    if (!product)
-      return res.status(404).json({ message: "Product not found." });
-
-    const shopId = product.shopId._id;
-    const vendorId = product.vendorId._id;
-
-    // Calculate finalPrice
-    const toppingsCost = toppings.reduce((sum, t) => sum + t.price, 0);
-    const finalPrice = (price + toppingsCost) * quantity;
-    let serviceType;
-    const serviceIdStr = product.serviceId.toString();
-    // Match serviceId with serviceType for food and grocery
-    if (serviceIdStr === "67ecc79120a93fc0b92a8b19") {
-      serviceType = "food";
-    } else if (serviceIdStr === "67ecc79a20a93fc0b92a8b1b") {
-      serviceType = "grocery";
+    // 🔹 Fetch product
+    const product = await VendorProduct.findById(productId);
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found.' });
     }
 
-    // Find existing cart
+    const vendorId = product.vendorId;
+
+    const finalPrice = price * quantity;
+
+    // 🔹 Find active cart
     let cart = await newCart.findOne({
       userId,
-      status: "active",
-      serviceType: user.serviceType,
+      status: 'active'
     });
+    console.log('🚀 ~ cart:', cart);
 
+    // 🔹 If cart does not exist → create new
     if (!cart) {
-      // If cart doesn't exist, create one
       cart = new newCart({
         userId,
-        serviceType: serviceType,
-        shops: [
+        vendorId,
+        items: [
           {
-            shopId,
-            vendorId,
-            items: [
-              {
-                productId,
-                price,
-                quantity,
-                toppings,
-                finalPrice,
-              },
-            ],
-          },
-        ],
-      });
-    } else {
-      // Check if shop group exists
-      const shopGroup = cart.shops.find((s) => s.shopId.equals(shopId));
-      if (shopGroup) {
-        // Check if product already exists in the shop group
-        const existingItem = shopGroup.items.find((item) =>
-          item.productId.equals(productId)
-        );
-
-        if (existingItem) {
-          // If product exists, update quantity and finalPrice
-          existingItem.quantity += quantity;
-          existingItem.finalPrice += finalPrice;
-        } else {
-          // Add item to existing shop group
-          shopGroup.items.push({
             productId,
             price,
             quantity,
-            toppings,
-            finalPrice,
-          });
-        }
+            finalPrice
+          }
+        ]
+      });
+    } else {
+      // 🔒 Enforce single vendor rule
+      console.log('🚀 ~ cart.vendorId:', cart.vendorId);
+      if (cart.vendorId.toString() !== vendorId.toString()) {
+        return res.status(400).json({
+          message: 'You can order from only one vendor at a time.'
+        });
+      }
+
+      // 🔹 Check if product already exists in cart
+      const existingItem = cart.items.find((item) => item.productId.toString() === productId);
+
+      if (existingItem) {
+        existingItem.quantity += quantity;
+        existingItem.finalPrice += finalPrice;
       } else {
-        // Add new shop group
-        cart.shops.push({
-          shopId,
-          vendorId,
-          items: [{ productId, price, quantity, toppings, finalPrice }],
+        cart.items.push({
+          productId,
+          price,
+          quantity,
+          finalPrice
         });
       }
     }
 
     await cart.save();
-    return res
-      .status(200)
-      .json({ success: true, message: "Item added to cart", cart });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Item added to cart',
+      cart
+    });
   } catch (error) {
-    console.error("AddToCart Error:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Server error", error: error.message });
+    console.error('AddToCart Error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
   }
 };
 
 // exports.createNewCart = async (req, res) => {
-//     try {
-//         const userId = req.user.id;
-//         const {
+//   try {
+//     const userId = req.user.id;
+//     const {
+//       productId,
+//       price,
+//       quantity = 1
+//       //  toppings = [], // [{ toppingId, price }]
+//     } = req.body;
+
+//     // Basic validations
+//     if (!productId || typeof price !== 'number' || price < 0 || quantity < 1) {
+//       return res.status(400).json({ message: 'Invalid product or price or quantity.' });
+//     }
+
+//     // for (const t of toppings) {
+//     //   if (!t.toppingId || typeof t.price !== "number" || t.price < 0) {
+//     //     return res.status(400).json({ message: "Invalid topping data." });
+//     //   }
+//     // }
+
+//     const user = await User.findById(userId);
+//     if (!user) {
+//       return res.status(404).json({ message: 'User not found.' });
+//     }
+
+//     // Get shop & vendor from product
+//     const product = await VendorProduct.findById(productId).populate('shopId vendorId');
+//     if (!product) return res.status(404).json({ message: 'Product not found.' });
+
+//     const shopId = product.shopId._id;
+//     const vendorId = product.vendorId._id;
+
+//     // Calculate finalPrice
+//     // const toppingsCost = toppings.reduce((sum, t) => sum + t.price, 0);
+//     const finalPrice = price * quantity;
+//     // let serviceType;
+//     // const serviceIdStr = product.serviceId.toString();
+//     // Match serviceId with serviceType for food and grocery
+//     // if (serviceIdStr === '67ecc79120a93fc0b92a8b19') {
+//     //   serviceType = 'food';
+//     // } else if (serviceIdStr === '67ecc79a20a93fc0b92a8b1b') {
+//     //   serviceType = 'grocery';
+//     // }
+
+//     // Find existing cart
+//     let cart = await newCart.findOne({
+//       userId,
+//       status: 'active'
+//       // serviceType: user.serviceType
+//     });
+
+//     if (!cart) {
+//       // If cart doesn't exist, create one
+//       cart = new newCart({
+//         userId,
+//         // serviceType: serviceType,
+//         shops: [
+//           {
+//             shopId,
+//             vendorId,
+//             items: [
+//               {
+//                 productId,
+//                 price,
+//                 quantity,
+//                 // toppings,
+//                 finalPrice
+//               }
+//             ]
+//           }
+//         ]
+//       });
+//     } else {
+//       // Check if shop group exists
+//       const shopGroup = cart.shops.find((s) => s.shopId.equals(shopId));
+//       if (shopGroup) {
+//         // Check if product already exists in the shop group
+//         const existingItem = shopGroup.items.find((item) => item.productId.equals(productId));
+
+//         if (existingItem) {
+//           // If product exists, update quantity and finalPrice
+//           existingItem.quantity += quantity;
+//           existingItem.finalPrice += finalPrice;
+//         } else {
+//           // Add item to existing shop group
+//           shopGroup.items.push({
 //             productId,
 //             price,
-//             quantity = 1,
-//             toppings = [], // [{ toppingId, price }]
-//         } = req.body;
-
-//         // Basic validations
-//         if (!productId || typeof price !== "number" || price < 0 || quantity < 1) {
-//             return res.status(400).json({ message: "Invalid product or price or quantity." });
+//             quantity,
+//             finalPrice
+//           });
 //         }
-
-//         for (const t of toppings) {
-//             if (!t.toppingId || typeof t.price !== "number" || t.price < 0) {
-//                 return res.status(400).json({ message: "Invalid topping data." });
-//             }
-//         }
-
-//         const user = await User.findById(userId);
-//         if (!user) {
-//             return res.status(404).json({ message: "User not found." });
-//         }
-
-//         // Get shop & vendor from product
-//         const product = await VendorProduct.findById(productId).populate("shopId vendorId");
-//         if (!product) return res.status(404).json({ message: "Product not found." });
-
-//         const shopId = product.shopId._id;
-//         const vendorId = product.vendorId._id;
-
-//         // Calculate finalPrice
-//         const toppingsCost = toppings.reduce((sum, t) => sum + t.price, 0);
-//         const finalPrice = (price + toppingsCost) * quantity;
-
-//         // Find existing cart
-//         let cart = await newCart.findOne({ userId, status: "active", serviceType: user.serviceType });
-
-//         if (!cart) {
-//             // If cart doesn't exist, create one
-//             cart = new newCart({
-//                 userId,
-//                 serviceType: user.serviceType,
-//                 shops: [{
-//                     shopId,
-//                     vendorId,
-//                     items: [{
-//                         productId,
-//                         price,
-//                         quantity,
-//                         toppings,
-//                         finalPrice
-//                     }]
-//                 }]
-//             });
-//         } else {
-//             // Check if shop group exists
-//             const shopGroup = cart.shops.find(s => s.shopId.equals(shopId));
-//             if (shopGroup) {
-//                 // Add item to existing shop group
-//                 shopGroup.items.push({ productId, price, quantity, toppings, finalPrice });
-//             } else {
-//                 // Add new shop group
-//                 cart.shops.push({
-//                     shopId,
-//                     vendorId,
-//                     items: [{ productId, price, quantity, toppings, finalPrice }]
-//                 });
-//             }
-//         }
-
-//         await cart.save();
-//         return res.status(200).json({ success: true, message: "Item added to cart", cart });
-//     } catch (error) {
-//         console.error("AddToCart Error:", error);
-//         return res.status(500).json({ success: false, message: "Server error", error: error.message });
+//       } else {
+//         // Add new shop group
+//         cart.shops.push({
+//           shopId,
+//           vendorId,
+//           items: [{ productId, price, quantity, finalPrice }]
+//         });
+//       }
 //     }
+
+//     await cart.save();
+//     return res.status(200).json({ success: true, message: 'Item added to cart', cart });
+//   } catch (error) {
+//     console.error('AddToCart Error:', error);
+//     return res.status(500).json({ success: false, message: 'Server error', error: error.message });
+//   }
 // };

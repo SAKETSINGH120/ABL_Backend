@@ -75,6 +75,7 @@ const { findVendor } = require('../controllers/vendor/authController/findVendor'
 const { deleteVendor } = require('../controllers/admin/vendorController/deleteVendor');
 const { getCms } = require('../controllers/vendor/cmsController/getCms');
 const { changePassword } = require('../controllers/vendor/authController/changePassword');
+const { createVendorProductVariant } = require('../controllers/vendor/vendorProductVarientController/createProductVarient');
 
 // router.get("/test", test);
 
@@ -133,12 +134,12 @@ router.post(
   vendorAuthenticate,
   fileUploader('shop', [
     { name: 'shopImage', maxCount: 1 },
-    { name: 'galleryImage', maxCount: 50 },
-    { name: 'menu', maxCount: 50 }
+    { name: 'galleryImage', maxCount: 50 }
   ]),
   createShop
 );
-router.get('/shop/details/:id', vendorAuthenticate, shopDetails);
+// router.get('/shop/details/:id', vendorAuthenticate, shopDetails);
+router.get('/shop/details', vendorAuthenticate, shopDetails);
 router.patch(
   '/shop/update/:id',
   vendorAuthenticate,
@@ -267,6 +268,17 @@ router.post(
   ]),
   createVendorProduct
 );
+// router.get("/vendorproduct/list", vendorAuthenticate, getAllProduct)
+// router.get("/vendorproduct/list/:id", vendorAuthenticate, getProductViaService)
+// router.get("/vendorproduct/:id", vendorAuthenticate, getProductDetail)
+// router.patch("/vendorproduct/:id", fileUploader("product", [{ name: "primary_image", maxCount: 1 }, { name: "gallery_image", maxCount: 10 }]), updateProduct);
+// router.patch('/vendorproduct/:id/toggle-status', updateProductStatus);
+// router.delete("/vendorproduct/:id", vendorAuthenticate, deleteProduct);
+
+//------------------------------------------------
+// add product on vendorProductVarient
+//------------------------------------------------
+router.post('/vendorproductvarient', vendorAuthenticate, createVendorProductVariant);
 // router.get("/vendorproduct/list", vendorAuthenticate, getAllProduct)
 // router.get("/vendorproduct/list/:id", vendorAuthenticate, getProductViaService)
 // router.get("/vendorproduct/:id", vendorAuthenticate, getProductDetail)
