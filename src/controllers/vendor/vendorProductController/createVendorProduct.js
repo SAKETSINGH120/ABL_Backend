@@ -9,9 +9,10 @@ const validateRequiredField = (field, fieldName) => {
 };
 
 exports.createVendorProduct = catchAsync(async (req, res, next) => {
-  let { name, categoryId, subCategoryId, shopId, mrp, sellingPrice, unitOfMeasurement, sellingUnit, shortDescription, longDescription, type, addedBy } = req.body;
+  let { name, categoryId, subCategoryId, shopId, mrp, sellingPrice, unitOfMeasurement, sellingUnit, shortDescription, longDescription, type, stock, addedBy } = req.body;
 
   const variants = req.body.variant || [];
+  console.log('🚀 ~ variants:', variants);
 
   const requiredFields = [
     { field: name, name: 'Product name' },
@@ -21,7 +22,8 @@ exports.createVendorProduct = catchAsync(async (req, res, next) => {
     { field: unitOfMeasurement, name: 'Unit of measurement' },
     { field: sellingUnit, name: 'Selling unit' },
     { field: shortDescription, name: 'Short Description' },
-    { field: longDescription, name: 'Long Description' }
+    // { field: longDescription, name: 'Long Description' },
+    { field: stock, name: 'Stock' }
     // { field: serviceId, name: 'Service Type' }
   ];
 
@@ -58,13 +60,14 @@ exports.createVendorProduct = catchAsync(async (req, res, next) => {
     variantTypeId: variant.variantId,
     sku: variant.sku || '',
     variantName: variant.variantName || '',
-    mrp: variant.mrpforVariant,
-    sellingPrice: variant.sellingPricefprVariant,
-    unitOfMeasurement: variant.unitOfMeasurement || unitOfMeasurement,
-    sellingUnit: variant.sellingUnitForVariant,
-    stock: variant.stockForVariant || 0,
-    status: variant.statusOfVariants || 'active'
+    mrp: variant.mrp,
+    sellingPrice: variant.sellingPrice,
+    // unitOfMeasurement: variant.unitOfMeasurement || unitOfMeasurement,
+    sellingUnit: variant.sellingUnit,
+    stock: variant.stock || 0,
+    status: variant.status || 'active'
   }));
+  console.log('🚀 ~ processedVariants:', processedVariants);
 
   let product = new VendorProduct({
     name,
@@ -80,6 +83,7 @@ exports.createVendorProduct = catchAsync(async (req, res, next) => {
     sellingUnit,
     shortDescription,
     longDescription,
+    stock,
     // serviceId,
     type,
     // addedBy

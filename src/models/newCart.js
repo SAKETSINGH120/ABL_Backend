@@ -40,6 +40,9 @@ const CartItemSchema = new Schema(
       ref: 'VendorProduct',
       required: true
     },
+    variantId: {
+      type: mongoose.Schema.Types.ObjectId // subdocument _id
+    },
     price: { type: Number, required: true, min: 0 },
     quantity: { type: Number, default: 1, min: 1 },
     finalPrice: { type: Number, required: true, min: 0 }

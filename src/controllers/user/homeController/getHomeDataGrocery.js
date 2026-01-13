@@ -37,12 +37,12 @@ exports.getHomeDataGrocery = catchAsync(async (req, res) => {
   };
 
   // Check serviceability for grocery service
-  // const isServiceable = await checkServiceability(user._id, userCoords, apiKey, 'grocery');
-  const isServiceable = true;
+  const isServiceable = await checkServiceability(user._id, userCoords, apiKey, 'grocery');
+  // const isServiceable = true;
   // console.log('isServiceable', isServiceable);
 
   const typeFilter = {}; //user.userType == 'veg' ? { type: 'veg' } : {};
-  const queryCommon = { status: 'active', serviceId, ...typeFilter };
+  const queryCommon = { status: 'active', ...typeFilter };
   console.log('🚀 ~ queryCommon:', queryCommon);
 
   const [banners, middleBanner, categories, explore, featuredRaw, seasonalRaw, vegRaw, fruitRaw, dealOfTheDay, kitchenRaw] = await Promise.all([

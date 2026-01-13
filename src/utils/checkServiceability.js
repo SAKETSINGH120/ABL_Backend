@@ -6,7 +6,7 @@ async function getLocationDetailsFromCoords(lat, long, apiKey) {
   try {
     const response = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&key=${apiKey}`);
 
-    console.log("🚀 ~ getLocationDetailsFromCoords ~ response.data.status:", response.data)
+    console.log('🚀 ~ getLocationDetailsFromCoords ~ response.data.status:', response.data);
     if (response.data.status === 'OK') {
       const result = response.data.results[0];
       let pincode = '',
@@ -32,7 +32,7 @@ async function getLocationDetailsFromCoords(lat, long, apiKey) {
   }
 }
 
-async function checkServiceability(userId, userCoords, apiKey, service) {
+async function checkServiceability(userId, userCoords, apiKey) {
   try {
     // console.log('Checking serviceability for:', { userId, userCoords, service });
 
@@ -47,9 +47,9 @@ async function checkServiceability(userId, userCoords, apiKey, service) {
     } else if (userCoords.lat && userCoords.long) {
       // If no address, get pincode from coordinates
       const locationDetails = await getLocationDetailsFromCoords(userCoords.lat, userCoords.long, apiKey);
-      console.log("🚀 ~ checkServiceability ~ locationDetails:", locationDetails)
+      console.log('🚀 ~ checkServiceability ~ locationDetails:', locationDetails);
       pincode = locationDetails.pincode;
-      console.log("🚀 ~ checkServiceability ~ pincode:", pincode)
+      console.log('🚀 ~ checkServiceability ~ pincode:', pincode);
     }
 
     if (!pincode) {
@@ -62,11 +62,11 @@ async function checkServiceability(userId, userCoords, apiKey, service) {
       status: 'active' // Add status check
     };
 
-    if (service === 'food') {
-      filter.isFoodAvailable = true;
-    } else if (service === 'grocery') {
-      filter.isGroceryAvailable = true;
-    }
+    // if (service === 'food') {
+    //   filter.isFoodAvailable = true;
+    // } else if (service === 'grocery') {
+    //   filter.isGroceryAvailable = true;
+    // }
 
     // Check if pincode is serviceable
     const serviceable = await serviceableAreas.findOne(filter); // Remove the extra curly braces

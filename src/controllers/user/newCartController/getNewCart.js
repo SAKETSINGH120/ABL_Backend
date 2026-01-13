@@ -50,7 +50,8 @@ exports.getNewCart = async (req, res) => {
       status: 'active'
     }).populate({
       path: 'items.productId',
-      select: 'name sellingPrice primary_image'
+      select: 'name sellingPrice primary_image mrp sellingUnit',
+      populate: { path: 'unitOfMeasurement', select: 'name -_id' }
     });
 
     const setting = await Setting.findById('680f1081aeb857eee4d456ab');

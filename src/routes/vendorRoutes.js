@@ -76,6 +76,7 @@ const { deleteVendor } = require('../controllers/admin/vendorController/deleteVe
 const { getCms } = require('../controllers/vendor/cmsController/getCms');
 const { changePassword } = require('../controllers/vendor/authController/changePassword');
 const { createVendorProductVariant } = require('../controllers/vendor/vendorProductVarientController/createProductVarient');
+const { getAllVariantTypes } = require('../controllers/vendor/variantType/getAllVariant');
 
 // router.get("/test", test);
 
@@ -275,10 +276,6 @@ router.post(
 // router.patch('/vendorproduct/:id/toggle-status', updateProductStatus);
 // router.delete("/vendorproduct/:id", vendorAuthenticate, deleteProduct);
 
-//------------------------------------------------
-// add product on vendorProductVarient
-//------------------------------------------------
-router.post('/vendorproductvarient', vendorAuthenticate, createVendorProductVariant);
 // router.get("/vendorproduct/list", vendorAuthenticate, getAllProduct)
 // router.get("/vendorproduct/list/:id", vendorAuthenticate, getProductViaService)
 // router.get("/vendorproduct/:id", vendorAuthenticate, getProductDetail)
@@ -324,5 +321,7 @@ router.get('/invoice/:orderId', newOrderinvoicePDF);
 router.get('/delete-vendor', showDeletePage);
 router.post('/find-vendor', findVendor);
 router.post('/delete-vendor/:id', deleteVendor);
+
+router.get('/variant-type', vendorAuthenticate, getAllVariantTypes);
 
 module.exports = router;
