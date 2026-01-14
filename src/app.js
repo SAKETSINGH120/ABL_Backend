@@ -14,7 +14,7 @@ const app = express();
  * Must be BEFORE all other middleware & routes
  */
 app.use((req, res, next) => {
-  const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174'];
+  const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174', 'http://192.168.1.16:5173', 'http://192.168.1.39:5173'];
 
   const origin = req.headers.origin;
 

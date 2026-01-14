@@ -16,7 +16,9 @@ exports.getsubCategoryProductList = catchAsync(async (req, res, next) => {
 
     const subCategoryId = req.params.subCategoryId;
 
-    const productList = await VendorProduct.find({ subCategoryId: subCategoryId, isDeleted: false }).populate('variants.variantTypeId', 'name').populate('unitOfMeasurement', 'name -_id');
+    const productList = await VendorProduct.find({ status: 'active', subCategoryId: subCategoryId, isDeleted: false })
+      .populate('variants.variantTypeId', 'name')
+      .populate('unitOfMeasurement', 'name -_id');
     const cartProducts = await newCart.findOne({ userId: userId });
 
     const cartProductIds = cartProducts ? cartProducts.items.map((item) => item?.productId.toString()) : [];

@@ -12,7 +12,7 @@ const checkServiceability = require('../../../utils/checkServiceability');
 const formatProduct = (prod) => ({
   _id: prod._id,
   name: prod.name,
-  shopId: prod.shopId._id || null,
+  // shopId: prod.shopId._id || null,
   vendorId: prod.vendorId,
   primary_image: prod.primary_image,
   sellingUnit: prod.sellingUnit,

@@ -240,13 +240,13 @@ router.patch(
 // copy product
 //------------------------------------------------
 router.post('/copy/product/create', vendorAuthenticate, createCopyProduct);
-router.get('/copy/product/all', vendorAuthenticate, getAllProductForAssign);
+router.get('/copy/product/all', vendorAuthenticate, getAllProductForAssign); // this api for vendor side
 router.get('/shop/product/:shopId', vendorAuthenticate, getAllProductOfShop);
-router.get('/copy/product/:id', vendorAuthenticate, getCopyProductDetail);
+router.get('/copy/product/:id', vendorAuthenticate, getCopyProductDetail); // this api for vendor side
 router.patch('/copy/product/status/:id', vendorAuthenticate, updateCopyProductStatus);
 router.patch('/copy/product/recommended/:id', vendorAuthenticate, updateCopyProductRecommended);
 router.post('/copy/product/bulk/create', vendorAuthenticate, createBulkCopyProduct);
-router.delete('/copy/product/delete/:id', vendorAuthenticate, deleteCopyProduct);
+router.delete('/copy/product/delete/:id', vendorAuthenticate, deleteCopyProduct); // this api for vendor side
 router.patch(
   '/copy/product/update/:id',
   fileUploader('product', [
@@ -254,7 +254,7 @@ router.patch(
     { name: 'gallery_image', maxCount: 10 }
   ]),
   vendorAuthenticate,
-  updateCopyProduct
+  updateCopyProduct // this api for vendor side
 );
 
 //------------------------------------------------
@@ -267,7 +267,7 @@ router.post(
     { name: 'primary_image', maxCount: 1 },
     { name: 'gallery_image', maxCount: 10 }
   ]),
-  createVendorProduct
+  createVendorProduct // this api for vendor side
 );
 // router.get("/vendorproduct/list", vendorAuthenticate, getAllProduct)
 // router.get("/vendorproduct/list/:id", vendorAuthenticate, getProductViaService)

@@ -5,7 +5,6 @@ const productVariantSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'VariantType'
   },
-  sku: { type: String, default: '' },
   variantName: { type: String },
   mrp: { type: Number, required: true },
   sellingPrice: { type: Number, required: true },
@@ -26,8 +25,7 @@ const VendorProductSchema = new mongoose.Schema({
   categoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
   subCategoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'SubCategory', default: null },
   brandId: { type: mongoose.Schema.Types.ObjectId, ref: 'Brand', default: null },
-  serviceId: { type: mongoose.Schema.Types.ObjectId, ref: 'Service' },
-  sku: { type: String, unique: false, default: '' },
+  //serviceId: { type: mongoose.Schema.Types.ObjectId, ref: 'Service' },
   type: { type: String, default: '' },
   primary_image: { type: String, required: true },
   gallery_image: [{ type: String, required: true }],

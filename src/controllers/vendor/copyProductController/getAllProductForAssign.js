@@ -13,10 +13,11 @@ const catchAsync = require('../../../utils/catchAsync');
 // })
 
 exports.getAllProductForAssign = catchAsync(async (req, res, nex) => {
-  const  vendorId  = req.vendor._id;
-  const allProduct = await VendorProduct.find({ status: 'active', vendorId: vendorId }).sort({ createdAt: -1 });
-  // .populate(['categoryId', 'brandId', 'serviceId', 'vendorId'])
-  // .populate({ path: 'subCategoryId', model: 'Category' });
+  const vendorId = req.vendor._id;
+  const allProduct = await VendorProduct.find({ vendorId: vendorId, isDeleted: false })
+    .sort({ createdAt: -1 })
+    .populate(['categoryId', 'brandId', 'vendorId'])
+    .populate({ path: 'subCategoryId', model: 'Category' });
 
   return res.status(200).json({
     status: 'success',

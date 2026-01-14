@@ -9,9 +9,30 @@ const validateRequiredField = (field, fieldName) => {
 };
 
 exports.createVendorProduct = catchAsync(async (req, res, next) => {
-  let { name, categoryId, subCategoryId, shopId, mrp, sellingPrice, unitOfMeasurement, sellingUnit, shortDescription, longDescription, type, stock, addedBy } = req.body;
+  let {
+    name,
+    categoryId,
+    subCategoryId,
+    brandId,
+    shopId,
+    mrp,
+    sellingPrice,
+    unitOfMeasurement,
+    sellingUnit,
+    shortDescription,
+    longDescription,
+    type,
+    stock,
+    addedBy,
+    isRecommended,
+    isFeatured,
+    isSeasonal,
+    isVegetableOfTheDay,
+    isFruitOfTheDay,
+    isDealOfTheDay
+  } = req.body;
 
-  const variants = req.body.variant || [];
+  const variants = JSON.parse(req.body.variant) || [];
   console.log('🚀 ~ variants:', variants);
 
   const requiredFields = [
@@ -57,8 +78,7 @@ exports.createVendorProduct = catchAsync(async (req, res, next) => {
 
   // Process variants array to match schema
   const processedVariants = variants.map((variant) => ({
-    variantTypeId: variant.variantId,
-    sku: variant.sku || '',
+    variantTypeId: variant.variantTypeId,
     variantName: variant.variantName || '',
     mrp: variant.mrp,
     sellingPrice: variant.sellingPrice,
@@ -74,6 +94,7 @@ exports.createVendorProduct = catchAsync(async (req, res, next) => {
     categoryId,
     subCategoryId: subCategoryId || null,
     vendorId,
+    brandId,
     shopId,
     primary_image: primaryImage,
     gallery_image: galleryimagePaths,
@@ -86,6 +107,12 @@ exports.createVendorProduct = catchAsync(async (req, res, next) => {
     stock,
     // serviceId,
     type,
+    isRecommended: parseBool(isRecommended),
+    isFeatured: parseBool(isFeatured),
+    isSeasonal: parseBool(isSeasonal),
+    isVegetableOfTheDay: parseBool(isVegetableOfTheDay),
+    isFruitOfTheDay: parseBool(isFruitOfTheDay),
+    isDealOfTheDay: parseBool(isDealOfTheDay),
     // addedBy
     variants: processedVariants
   });
@@ -99,3 +126,12 @@ exports.createVendorProduct = catchAsync(async (req, res, next) => {
     newProduct: true
   });
 });
+
+// normalize boolean flags (accepts boolean, 'true'/'false', 1/0)
+const parseBool = (val) => {
+  if (val === undefined || val === null) return false;
+  if (typeof val === 'boolean') return val;
+  if (typeof val === 'number') return val === 1;
+  if (typeof val === 'string') return val.toLowerCase() === 'true' || val === '1';
+  return Boolean(val);
+};
