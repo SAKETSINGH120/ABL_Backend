@@ -2,15 +2,13 @@ const newOrder = require("../../../models/newOrder");
 const catchAsync = require("../../../utils/catchAsync");
 
 exports.getNewOrder = catchAsync(async (req, res, next) => {
-
     try {
         const { orderId } = req.params;
-
         const order = await newOrder.findById(orderId)
             .populate("productData.productId") // Populate product info
             .populate("userId", "name email") // Populate user info (select fields)
             .populate("addressId") // Full address
-            .populate("shopId", "name location packingCharge") // Shop details
+            // .populate("shopId", "name location packingCharge") // Shop details
             .populate("assignedDriver", "name")
             .populate("vendorId", "name email"); // Vendor info
 

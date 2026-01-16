@@ -17,7 +17,7 @@ exports.getNewOrder = async (req, res) => {
         const tomorrow = new Date(today);
         tomorrow.setDate(today.getDate() + 1);
 
-        let filter = {userId, serviceType: user.serviceType};
+        const filter = { userId };
 
         // if (type === "today") {
         //     filter.deliveryDate = { $gte: today, $lt: tomorrow };
@@ -31,11 +31,11 @@ exports.getNewOrder = async (req, res) => {
             filter.orderStatus = { $in: ["delivered", "cancelled", "cancelledByDriver", "cancelledByAdmin", "cancelledByVendor"] };
         }
 
-        let orders = await newOrder.find(filter)
+        const orders = await newOrder.find(filter)
             .populate("productData.productId", "name primary_image vendorSellingPrice shortDescription")
             // .populate("couponId")
             .populate("addressId")
-            .populate("shopId", "name location shopImage")
+            // .populate("shopId", "name location shopImage")
             .populate("vendorId", "name email")
             .populate("assignedDriver", "name")
             .sort({ createdAt: -1 });

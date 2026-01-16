@@ -11,7 +11,7 @@ exports.getOrder = catchAsync(async (req, res, next) => {
             .populate("userId", "name email")
             .populate("addressId")
             // .populate("couponId")
-            .populate("shopId", "name location packingCharge")
+            // .populate("shopId", "name location packingCharge")
             .populate("vendorId", "name email");
 
         if (!order) {

@@ -8,42 +8,77 @@ const { calculateOffer } = require('../../../utils/calculateOffer');
 const catchAsync = require('../../../utils/catchAsync');
 const { MART_SERVICE_ID } = require('../../../utils/constants');
 const checkServiceability = require('../../../utils/checkServiceability');
+const newCart = require('../../../models/newCart');
+const Vendor = require('../../../models/vendor');
 
-const formatProduct = (prod) => ({
-  _id: prod._id,
-  name: prod.name,
-  // shopId: prod.shopId._id || null,
-  vendorId: prod.vendorId,
-  primary_image: prod.primary_image,
-  sellingUnit: prod.sellingUnit,
-  mrp: prod.mrp,
-  price: prod.vendorSellingPrice,
-  offer: calculateOffer(prod.mrp, prod.vendorSellingPrice),
-  shortDescription: prod.shortDescription
-});
+const formatProduct = (prod, cartMap) => {
+  const productKey = `${prod._id}_no-variant`;
+
+  return ({
+    _id: prod._id,
+    name: prod.name,
+    vendorId: prod.vendorId,
+    primary_image: prod.primary_image,
+    sellingUnit: prod.sellingUnit,
+    mrp: prod.mrp,
+    price: prod.vendorSellingPrice,
+    offer: calculateOffer(prod.mrp, prod.vendorSellingPrice),
+    shortDescription: prod.shortDescription,
+    subCategoryId: prod.subCategoryId,
+    unitOfMeasurement: prod.unitOfMeasurement,
+    isInCart: cartMap.has(productKey),
+    cartQty: cartMap.get(productKey) || 0,
+    variants: prod.variants.map((variant) => {
+      const variantKey = `${prod._id}_${variant._id}`;
+
+      return {
+        _id: variant._id,
+        variantTypeId: variant.variantTypeId,
+        variantName: variant.variantName || '',
+        mrp: variant.mrp,
+        sellingPrice: variant.sellingPrice,
+        sellingUnit: variant.sellingUnit,
+        stock: variant.stock || 0,
+        status: variant.status || 'active',
+        isInCart: cartMap.has(variantKey),
+        cartQty: cartMap.get(variantKey) || 0
+      };
+    })
+  })
+};
 
 exports.getHomeDataGrocery = catchAsync(async (req, res) => {
-  const serviceId = req.query.serviceId || MART_SERVICE_ID;
-  console.log('🚀 ~ serviceId:', serviceId);
+  const userId = req.user._id;
+  const productLimit = 10;
 
   // Fetch initial data in parallel
-  const [setting, user] = await Promise.all([Setting.findById('680f1081aeb857eee4d456ab'), User.findById(req.user._id)]);
+  const [setting, user, userActiveCart] = await Promise.all([Setting.findById('680f1081aeb857eee4d456ab'), User.findById(userId), newCart.findOne({ userId: userId, status: 'active' })]);
 
-  const apiKey = 'AIzaSyAsQryHkf5N7-bx_ZBMJ-X7yFMa9WTqwt0'; // setting?.googleMapApiKey || 'working';
-  console.log('🚀 ~ apiKey:', apiKey);
+  if (!user.pincode) {
+    return res.status(400).json({
+      success: false,
+      message: 'Pincode is required'
+    });
+  }
+
+  const vendor = await Vendor.findOne({ status: true, pincode: user.pincode }).select('_id');
+  const vendorId = vendor?._id;
+
+
+  const apiKey = 'AIzaSyAsQryHkf5N7-bx_ZBMJ-X7yFMa9WTqwt0';
   const userCoords = {
     lat: parseFloat(user.lat || 0),
     long: parseFloat(user.long || 0)
   };
 
-  // Check serviceability for grocery service
-  const isServiceable = await checkServiceability(user._id, userCoords, apiKey, 'grocery');
-  // const isServiceable = true;
-  // console.log('isServiceable', isServiceable);
+  // const isServiceable = await checkServiceability(user._id, userCoords, apiKey);
+  const isServiceable = vendor ? true : false;
 
-  const typeFilter = {}; //user.userType == 'veg' ? { type: 'veg' } : {};
+  const typeFilter = {};
   const queryCommon = { status: 'active', ...typeFilter };
-  console.log('🚀 ~ queryCommon:', queryCommon);
+  if (vendorId) {
+    queryCommon.vendorId = vendorId;
+  }
 
   const [banners, middleBanner, categories, explore, featuredRaw, seasonalRaw, vegRaw, fruitRaw, dealOfTheDay, kitchenRaw] = await Promise.all([
     banner.find({ section: 'top' }).select('image').sort({ createdAt: -1 }),
@@ -51,22 +86,41 @@ exports.getHomeDataGrocery = catchAsync(async (req, res) => {
     Category.find({ cat_id: null }).select('name image').limit(8).sort({ createdAt: -1 }),
     Explore.find({}).select('name icon'),
     VendorProduct.find({ ...queryCommon, isFeatured: true, isDeleted: false })
-      .limit(10)
-      .populate('shopId', 'name lat long'),
+      .limit(productLimit).populate('variants.variantTypeId', 'name')
+      .populate('unitOfMeasurement', 'name -_id'),
     VendorProduct.find({ ...queryCommon, isSeasonal: true, isDeleted: false })
-      .limit(10)
-      .populate('shopId', 'name lat long'),
+      .limit(productLimit).populate('variants.variantTypeId', 'name')
+      .populate('unitOfMeasurement', 'name -_id'),
     VendorProduct.find({ ...queryCommon, isVegetableOfTheDay: true, isDeleted: false })
-      .limit(10)
-      .populate('shopId', 'name lat long'),
+      .limit(productLimit).populate('variants.variantTypeId', 'name')
+      .populate('unitOfMeasurement', 'name -_id'),
     VendorProduct.find({ ...queryCommon, isFruitOfTheDay: true, isDeleted: false })
-      .limit(10)
-      .populate('shopId', 'name lat long'),
+      .limit(productLimit).populate('variants.variantTypeId', 'name')
+      .populate('unitOfMeasurement', 'name -_id'),
     VendorProduct.find({ ...queryCommon, isDealOfTheDay: true, isDeleted: false })
-      .limit(10)
-      .populate('shopId', 'name lat long'),
-    VendorProduct.find({ categoryId: '6854ffe193a2cab5ddcba4cf' }).limit(5).populate('shopId', 'name lat long')
+      .limit(productLimit).populate('variants.variantTypeId', 'name')
+      .populate('unitOfMeasurement', 'name -_id'),
+    VendorProduct.find({ ...queryCommon, categoryId: '6854ffe193a2cab5ddcba4cf' }).limit(productLimit).populate('variants.variantTypeId', 'name')
+      .populate('unitOfMeasurement', 'name -_id')
   ]);
+
+  const cartMap = new Map();
+
+  if (userActiveCart) {
+    userActiveCart.items.forEach((item) => {
+      const key = `${item.productId}_${item.variantId || 'no-variant'}`;
+      cartMap.set(key, item.quantity);
+    });
+  }
+
+  for (let i = 0; i < productLimit; i++) {
+    if (featuredRaw[i]) featuredRaw[i] = formatProduct(featuredRaw[i], cartMap);
+    if (seasonalRaw[i]) seasonalRaw[i] = formatProduct(seasonalRaw[i], cartMap);
+    if (vegRaw[i]) vegRaw[i] = formatProduct(vegRaw[i], cartMap);
+    if (fruitRaw[i]) fruitRaw[i] = formatProduct(fruitRaw[i], cartMap);
+    if (dealOfTheDay[i]) dealOfTheDay[i] = formatProduct(dealOfTheDay[i], cartMap);
+    if (kitchenRaw[i]) kitchenRaw[i] = formatProduct(kitchenRaw[i], cartMap);
+  }
 
   res.status(200).json({
     success: true,
@@ -76,13 +130,12 @@ exports.getHomeDataGrocery = catchAsync(async (req, res) => {
       middleBanner,
       categories,
       explore,
-      featuredProducts: featuredRaw.map(formatProduct),
-      seasonalProducts: seasonalRaw.map(formatProduct),
-      vegetableslProducts: vegRaw.map(formatProduct),
-      fruitsProducts: fruitRaw.map(formatProduct),
-      fruitsProducts: fruitRaw.map(formatProduct),
-      dealOfTheDay: dealOfTheDay.map(formatProduct),
-      kitchenProducts: kitchenRaw.map(formatProduct),
+      featuredProducts: featuredRaw,
+      seasonalProducts: seasonalRaw,
+      vegetableslProducts: vegRaw,
+      fruitsProducts: fruitRaw,
+      dealOfTheDay: dealOfTheDay,
+      kitchenProducts: kitchenRaw,
       isServiceable
     }
   });

@@ -43,6 +43,7 @@ const { getCoupons } = require('../controllers/user/coupon/getCoupon');
 const getInvoicePdf = require('../controllers/user/orderController/invoice');
 const createRazorpayOrder = require('../controllers/user/paymentController/createRazorpayOrder');
 const verifyRazorpayWebhook = require('../controllers/user/paymentController/razorpayWebhook');
+const verifyPayment = require('../controllers/user/paymentController/verifyPayment');
 const { showDeletePage } = require('../controllers/user/authController/showDeletePage');
 const { deleteUser } = require('../controllers/user/authController/deleteUser');
 const { getShopList } = require('../controllers/user/homeController/getShopList');
@@ -190,6 +191,7 @@ router.get('/neworder/:orderId', userAuthenticate, getNewOrderDetails);
 //------------------------------------------------
 router.post('/create-razorpay-order', userAuthenticate, createRazorpayOrder);
 router.post('/razorpay-webhook', express.raw({ type: 'application/json' }), verifyRazorpayWebhook);
+router.post(`/verify-payment`, userAuthenticate, verifyPayment);
 
 //------------------------------------------------
 // wallet

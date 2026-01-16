@@ -38,7 +38,21 @@ const vendorSchema = new mongoose.Schema(
     // for firebase cloud messaging
     deviceId: { type: String, default: '' },
     deviceToken: { type: String, default: '' },
-    createdAt: { type: Date, default: Date.now }
+    createdAt: { type: Date, default: Date.now },
+
+    // location details
+    address: { type: String, default: '' },
+    pincode: { type: String, default: '', required: true },
+    city: { type: String, default: '' },
+    state: { type: String, default: '' },
+    location: {
+      type: { type: String, enum: ['Point'], default: 'Point' },
+      coordinates: { type: [Number] } // [longitude, latitude]
+    },
+
+    // charge details
+    deliveryCharge: { type: Number, default: 0 },
+    packingCharge: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

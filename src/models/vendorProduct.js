@@ -55,3 +55,5 @@ const VendorProductSchema = new mongoose.Schema({
 
 const VendorProduct = mongoose.model('VendorProduct', VendorProductSchema);
 module.exports = VendorProduct;
+module.exports.productVariantSchema = productVariantSchema;
+

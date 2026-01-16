@@ -7,9 +7,9 @@ const {
 exports.getAllNewOrder = async (req, res) => {
   try {
     const orderStatus = req.query.orderStatus;
-    const serviceType = req.query.serviceType;
+    // const serviceType = req.query.serviceType;
 
-    let filter = { serviceType };
+    const filter = {};
 
     // Apply filter based on orderStatus
     if (orderStatus && orderStatus !== "all") {
@@ -36,17 +36,49 @@ exports.getAllNewOrder = async (req, res) => {
       }
     }
 
-    console.log("Filter applied:", filter);
+    /*
     // Fetch orders with population
     const ordersRaw = await newOrder
       .find(filter)
       .populate("productData.productId")
       // .populate("couponId")
       .populate("addressId")
-      .populate("shopId", "name location packingCharge")
+      // .populate("shopId", "name location packingCharge")
       .populate("vendorId", "name email")
       .populate("assignedDriver", "name")
       .sort({ createdAt: -1 });
+
+    // Fetch counts for all statuses
+    const allCounts = await newOrder.aggregate([
+      {
+        $match: {},
+      },
+      {
+        $group: {
+    //       _id: "$orderStatus",
+    //       count: { $sum: 1 },
+    //     },
+    //   },
+    // ]);
+      */
+
+    const [ordersRaw, allCounts] = await Promise.all([newOrder
+      .find(filter)
+      .populate("productData.productId")
+      .populate("addressId")
+      .populate("vendorId", "name email")
+      .populate("assignedDriver", "name")
+      .sort({ createdAt: -1 }), newOrder.aggregate([
+        {
+          $match: {},
+        },
+        {
+          $group: {
+            _id: "$orderStatus",
+            count: { $sum: 1 },
+          },
+        },
+      ])])
 
     // Transform orders data
     const orders = ordersRaw.map((order) => ({
@@ -59,23 +91,10 @@ exports.getAllNewOrder = async (req, res) => {
       orderStatus: order.orderStatus,
       paymentMode: order.paymentMode,
       paymentStatus: order.paymentStatus,
-      shopName: order.shopId?.name || "Shop Deleted",
+      // shopName: order.shopId?.name || "Shop Deleted",
       assignedDriver: order?.assignedDriver?.name || null,
       isRefunded: order.isRefunded,
     }));
-
-    // Fetch counts for all statuses
-    const allCounts = await newOrder.aggregate([
-      {
-        $match: serviceType ? { serviceType } : {},
-      },
-      {
-        $group: {
-          _id: "$orderStatus",
-          count: { $sum: 1 },
-        },
-      },
-    ]);
 
     // Map to a dictionary
     const statusCountMap = allCounts.reduce((acc, cur) => {

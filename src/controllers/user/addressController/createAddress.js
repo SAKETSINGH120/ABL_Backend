@@ -7,7 +7,7 @@ const User = require("../../../models/user");
 const serviceableAreas = require("../../../models/serviceableAreas");
 
 exports.createAddress = catchAsync(async (req, res, next) => {
-    let { name, address1, address2, city, pincode, state, personName, personMob, isDefault = true } = req.body;
+    let { name, address1, address2, city, pincode, state, personName, personMob, isDefault = true, lat, long, landmark } = req.body;
 
     const userId = req.user._id;
     if (!userId) return next(new AppError("User not found", 404));
@@ -15,38 +15,36 @@ exports.createAddress = catchAsync(async (req, res, next) => {
     if (!city) return next(new AppError("City is required", 404));
     if (!pincode) return next(new AppError("Pincode is required", 404));
     if (!state) return next(new AppError("State is required", 404));
+    if (!lat) return next(new AppError("Latitude is required", 404));
+    if (!long) return next(new AppError("Longitude is required", 404));
 
     // Check if the pincode is serviceable
     const serviceable = await serviceableAreas.findOne({
         pincode,
         status: "active",
-        $or: [
-            { isFoodAvailable: true },
-            { isGroceryAvailable: true }
-        ]
     });
 
     if (!serviceable) {
         return next(new AppError("Sorry, we don't deliver to this location yet", 400));
     }
 
-    const setting = await Setting.findById("680f1081aeb857eee4d456ab");
-    const apiKey = setting?.googleMapApiKey || "working";
-    const addressStr = `${address1}, ${address2 || ''}, ${city}, ${state}, ${pincode}`.replace(/\s+/g, ' ').trim();
+    // const setting = await Setting.findById("680f1081aeb857eee4d456ab");
+    // const apiKey = setting?.googleMapApiKey || "working";
+    // const addressStr = `${address1}, ${address2 || ''}, ${city}, ${state}, ${pincode}`.replace(/\s+/g, ' ').trim();
 
-    let location = null;
-    try {
-        const response = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(addressStr)}&key=${apiKey}`);
-        if (response.data.status === "OK" && response.data.results[0]) {
-            const { lat, lng } = response.data.results[0].geometry.location;
-            location = {
-                type: "Point",
-                coordinates: [lng, lat] // GeoJSON: [long, lat]
-            };
-        }
-    } catch (err) {
-        console.error("Google Maps API error:", err);
-    }
+    // let location = null;
+    // try {
+    //     const response = await axios.get(`https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(addressStr)}&key=${apiKey}`);
+    //     if (response.data.status === "OK" && response.data.results[0]) {
+    //         const { lat, lng } = response.data.results[0].geometry.location;
+    //         location = {
+    //             type: "Point",
+    //             coordinates: [lng, lat] // GeoJSON: [long, lat]
+    //         };
+    //     }
+    // } catch (err) {
+    //     console.error("Google Maps API error:", err);
+    // }
 
     // Check if user already has a default address
     const defaultExists = await Address.exists({ userId, isDefault: true });
@@ -68,8 +66,12 @@ exports.createAddress = catchAsync(async (req, res, next) => {
     if (!personMob) {
         personMob = userData.mobileNo || "";
     }
+    const location = {
+        type: "Point",
+        coordinates: [long, lat]
+    };
 
-    const address = new Address({ userId, name, address1, address2, city, pincode, state, location, personName, personMob, isDefault });
+    const address = new Address({ userId, name, address1, address2, city, pincode, state, location, personName, personMob, isDefault, landmark: landmark ?? "" });
 
     await address.save();
 
@@ -87,7 +89,7 @@ exports.createAddress = catchAsync(async (req, res, next) => {
         });
     }
 
-    return res.status(201).json({
+    return res.status(200).json({
         status: true,
         message: "Address added successfully",
         data: { address },

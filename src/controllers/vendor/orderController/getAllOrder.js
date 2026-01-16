@@ -2,7 +2,6 @@
 const newOrder = require("../../../models/newOrder");
 const catchAsync = require("../../../utils/catchAsync");
 
-
 exports.getAllOrder = catchAsync(async (req, res, next) => {
     try {
         const vendorId = req.vendor._id;
@@ -31,25 +30,44 @@ exports.getAllOrder = catchAsync(async (req, res, next) => {
             };
         }
 
-        // Main order data
-        const orders = await newOrder.find(filter)
-            .populate("productData.productId", "name primary_image")
-            // .populate("couponId")
-            .populate("addressId")
-            .populate("shopId", "name location packingCharge")
-            .populate("vendorId", "name email")
-            .sort({ createdAt: -1 });
+        /*
+// Main order data
+const orders = await newOrder.find(filter)
+  .populate("productData.productId", "name primary_image")
+  // .populate("couponId")
+  .populate("addressId")
+  // .populate("shopId", "name location packingCharge")
+  .populate("vendorId", "name email")
+  .populate("assignedDriver", "name")
+  .sort({ createdAt: -1 });
+  */
 
-        // Fetch counts for all statuses
-        const allCounts = await newOrder.aggregate([
-            { $match: { vendorId } },
-            {
-                $group: {
-                    _id: "$orderStatus",
-                    count: { $sum: 1 }
-                }
+        /*
+    // Fetch counts for all statuses
+    const allCounts = await newOrder.aggregate([
+        { $match: { vendorId } },
+        {
+            $group: {
+                _id: "$orderStatus",
+                count: { $sum: 1 }
             }
-        ]);
+        }
+    ]);*/
+
+        const [orders, allCounts] = await Promise.all([newOrder.find(filter)
+            .populate("productData.productId", "name primary_image")
+            .populate("addressId")
+            .populate("vendorId", "name email")
+            .populate("assignedDriver", "name")
+            .sort({ createdAt: -1 }), newOrder.aggregate([
+                { $match: { vendorId } },
+                {
+                    $group: {
+                        _id: "$orderStatus",
+                        count: { $sum: 1 }
+                    }
+                }
+            ])])
 
         // Map to a dictionary
         const statusCountMap = allCounts.reduce((acc, cur) => {
