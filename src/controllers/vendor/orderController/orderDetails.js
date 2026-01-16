@@ -13,7 +13,7 @@ exports.orderDetails = catchAsync(async (req, res, next) => {
             .populate("addressId", "personName personMob address1 city state pincode")
             // .populate("couponId", "code amount") 
             // .populate("shopId", "name location packingCharge address")
-            .populate("vendorId", "name email");
+            .populate("vendorId", "name email address pincode");
 
         if (!order) {
             return res.status(404).json({ success: false, message: "Order not found" });

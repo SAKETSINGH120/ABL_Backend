@@ -29,11 +29,14 @@ exports.createVendorProduct = catchAsync(async (req, res, next) => {
     isSeasonal,
     isVegetableOfTheDay,
     isFruitOfTheDay,
-    isDealOfTheDay
+    isDealOfTheDay,
+    variant
   } = req.body;
 
-  const variants = JSON.parse(req.body.variant) || [];
-  console.log('🚀 ~ variants:', variants);
+  let variants = [];
+  if (variant) {
+    variants = JSON.parse(variant);
+  }
 
   const requiredFields = [
     { field: name, name: 'Product name' },

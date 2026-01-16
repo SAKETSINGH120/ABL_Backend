@@ -12,17 +12,26 @@ const generateInvoice = async (order, filePath) => {
         const doc = new PDFDocument({ margin: 50 });
         const stream = fs.createWriteStream(filePath);
         doc.pipe(stream);
+        let customerDetails = "";
+        if (order.userId?.name) {
+            customerDetails += order.userId?.name;
+        }
+        if (order.userId?.email) {
+            customerDetails += ` (${order.userId?.email})`;
+        }
+        if (order.userId?.mobileNo) {
+            customerDetails += ` ${order.userId?.mobileNo}`;
+        }
 
         // 🔷 Branding Header
-        doc.fontSize(24).fillColor('#333').text('Gorabit', { align: 'center' });
+        doc.fontSize(24).fillColor('#333').text('ABLAGRO', { align: 'center' });
         doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
         doc.moveDown();
 
         // 🧾 Invoice Header
         doc.fontSize(14).fillColor('black').text(`Booking ID: ${order.booking_id}`);
         doc.text(`Date: ${new Date(order.createdAt).toLocaleDateString()}`);
-        doc.text(`Customer: ${order.userId?.name} (${order.userId?.email})`);
-        doc.text(`Shop: ${order.shopId?.name}`);
+        doc.text(`Customer: ${customerDetails}`);
         doc.moveDown();
 
         // 📍 Address
@@ -49,7 +58,7 @@ const generateInvoice = async (order, filePath) => {
         doc.text('Product', startX + 40, y);
         doc.text('Qty', startX + 230, y);
         doc.text('Price', startX + 270, y);
-        doc.text('Toppings', startX + 330, y);
+        // doc.text('Toppings', startX + 330, y);
         doc.text('Total', startX + 470, y);
 
         y += rowHeight;
@@ -58,16 +67,16 @@ const generateInvoice = async (order, filePath) => {
         // Table Rows
         order.productData.forEach((item, i) => {
             const product = item.productId;
-            let toppings = (item.toppings || [])
-                .map(t => `${t.toppingId.name} (Rs.${t.price})`)
-                .join(', ') || '-';
+            // let toppings = (item.toppings || [])
+            //     .map(t => `${t.toppingId.name} (Rs.${t.price})`)
+            //     .join(', ') || '-';
 
             doc.fontSize(10).fillColor('#000');
             doc.text(i + 1, startX, y);
             doc.text(product.name, startX + 40, y, { width: 180 });
             doc.text(item.quantity, startX + 230, y);
             doc.text(`Rs. ${item.price}`, startX + 270, y);
-            doc.text(toppings, startX + 330, y, { width: 130 });
+            // doc.text(toppings, startX + 330, y, { width: 130 });
             doc.text(`Rs. ${item.finalPrice}`, startX + 470, y);
 
             y += rowHeight;
@@ -103,7 +112,7 @@ const generateInvoice = async (order, filePath) => {
 
         doc.moveDown(0.5);
         doc.fontSize(13).font('Helvetica-Bold')
-            .text('Final Total:', 350, doc.y, { continued: true })
+            .text('Final Total (Incl. GST):', 350, doc.y, { continued: true })
             .text(`Rs. ${order.finalTotalPrice}`, { align: 'right' });
 
         doc.font('Helvetica').moveDown();

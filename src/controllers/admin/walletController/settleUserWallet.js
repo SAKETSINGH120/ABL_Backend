@@ -62,12 +62,12 @@ exports.settleUserWallet = async (req, res) => {
             action: type,
             amount: numericAmount,
             balance_after_action: user.wallet,
-            description: remark || `${type} ${numericAmount} by goRabit`,
+            description: remark || `${type} ${numericAmount} by AblAGRO`,
         });
 
         return res.status(200).json({
             status: true,
-            message: `${type} ${numericAmount} by goRabit`,
+            message: `${type} ${numericAmount} by AblAGRO`,
             wallet_balance: user.wallet
         });
 

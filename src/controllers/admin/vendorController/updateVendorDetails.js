@@ -11,7 +11,7 @@ exports.updateVendorDetails = catchAsync(async (req, res, next) => {
   // Helper to check if value is not undefined or 'undefined'
   const isValid = (v) => v !== undefined && v !== null && v !== 'undefined';
 
-  const { name, mobile, alternateMobile, email, panNo, gstNo, foodLicense, commission, payoutType } = req.body;
+  const { name, mobile, alternateMobile, email, panNo, gstNo, foodLicense, commission, payoutType, deliveryCharge, packingCharge, state, city, pincode } = req.body;
   if (isValid(name)) vendor.name = name;
   if (isValid(mobile)) vendor.mobile = mobile;
   if (isValid(alternateMobile)) vendor.alternateMobile = alternateMobile;
@@ -21,6 +21,11 @@ exports.updateVendorDetails = catchAsync(async (req, res, next) => {
   if (isValid(foodLicense)) vendor.foodLicense = foodLicense;
   if (isValid(commission)) vendor.commission = commission;
   if (isValid(payoutType)) vendor.payoutType = payoutType;
+  if (isValid(deliveryCharge)) vendor.deliveryCharge = deliveryCharge;
+  if (isValid(packingCharge)) vendor.packingCharge = packingCharge;
+  if (isValid(state)) vendor.state = state;
+  if (isValid(city)) vendor.city = city;
+  if (isValid(pincode)) vendor.pincode = pincode;
   if (req.files && req.files.panImage) vendor.panImage = req.files.panImage[0].path;
   if (req.files && req.files.gstImage) vendor.gstImage = req.files.gstImage[0].path;
   if (req.files && req.files.foodImage) vendor.foodImage = req.files.foodImage[0].path;
