@@ -65,7 +65,7 @@ exports.getHomeDataGrocery = catchAsync(async (req, res) => {
   const vendorId = vendor?._id;
 
 
-  const apiKey = 'AIzaSyAsQryHkf5N7-bx_ZBMJ-X7yFMa9WTqwt0';
+  // const apiKey = '';
   const userCoords = {
     lat: parseFloat(user.lat || 0),
     long: parseFloat(user.long || 0)

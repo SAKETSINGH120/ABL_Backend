@@ -8,11 +8,11 @@ const newOrderinvoicePDF = async (req, res) => {
         const { orderId } = req.params;
         const order = await newOrder.findById(orderId)
             .populate("productData.productId") // Note: productId instead of product_id
-            .populate("productData.toppings.toppingId") // Populate toppings if needed
-            .populate("userId", "name email")
+            // .populate("productData.toppings.toppingId") // Populate toppings if needed
+            .populate("userId", "name email mobileNo")
             .populate("addressId")
             // .populate("couponId")
-            .populate("shopId", "name location packingCharge")
+            // .populate("shopId", "name location packingCharge")
             .populate("assignedDriver", "name")
             .populate("vendorId", "name email");
 

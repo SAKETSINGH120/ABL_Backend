@@ -27,7 +27,7 @@ exports.verifyOtp = async (req, res) => {
         user.lastLogin = new Date();
 
         user.otp = undefined;
-        // user.googleMapApiKey = "AIzaSyAsQryHkf5N7-bx_ZBMJ-X7yFMa9WTqwt0"
+        // user.googleMapApiKey = ""
 
         const setting = await Setting.findById("680f1081aeb857eee4d456ab");
         const apiKey = setting?.googleMapApiKey || "working";
@@ -35,7 +35,7 @@ exports.verifyOtp = async (req, res) => {
         await user.save();
         console.log("user.isNewUser", user.isNewUser);
         if (user.isNewUser) {
-        sendPushNotification({
+            sendPushNotification({
                 deviceToken: user.deviceToken,
                 title: "Welcome to GoRabbit",
                 body: "Your account has been created successfully."

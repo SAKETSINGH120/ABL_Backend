@@ -6,7 +6,7 @@ exports.getNewOrder = catchAsync(async (req, res, next) => {
         const { orderId } = req.params;
         const order = await newOrder.findById(orderId)
             .populate("productData.productId") // Populate product info
-            .populate("userId", "name email") // Populate user info (select fields)
+            .populate("userId", "name email mobileNo") // Populate user info (select fields)
             .populate("addressId") // Full address
             // .populate("shopId", "name location packingCharge") // Shop details
             .populate("assignedDriver", "name")
