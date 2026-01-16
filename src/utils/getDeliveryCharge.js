@@ -10,8 +10,6 @@ const deliveryPriceInfo = [
 
 
 const getDeliveryCharge = async (origin, destination, apiKey) => {
-    console.log("origin",origin);
-    console.log("destination",destination);
     try {
         // Validate coordinates
         if (!origin?.lat || !origin?.long || !destination?.lat || !destination?.long) {
@@ -50,18 +48,18 @@ const getDeliveryCharge = async (origin, destination, apiKey) => {
 
             const settingData = await Setting.findById("680f1081aeb857eee4d456ab");
             console.log("Setting Data:", settingData);
-            console.log("Distance (km):", distanceKm); 
+            console.log("Distance (km):", distanceKm);
             let deliveryCharge = 0;
-            if(distanceKm <= 3){
+            if (distanceKm <= 3) {
                 console.log("inside the below 3 km");
-                console.log("settingData.userDeliveryChargeLessThan3",settingData.userDeliveryChargeLessThan3);
-                    deliveryCharge = settingData.userDeliveryChargeLessThan3;
-            }else{
+                console.log("settingData.userDeliveryChargeLessThan3", settingData.userDeliveryChargeLessThan3);
+                deliveryCharge = settingData.userDeliveryChargeLessThan3;
+            } else {
                 console.log("inside the above 3 km");
-                console.log("settingData.userDeliveryChargeMoreThan3",settingData.userDeliveryChargeMoreThan3);
+                console.log("settingData.userDeliveryChargeMoreThan3", settingData.userDeliveryChargeMoreThan3);
                 deliveryCharge = Math.ceil(distanceKm * settingData.userDeliveryChargeMoreThan3);
             }
-            
+
             console.log("Calculated Delivery Charge:", deliveryCharge);
             return {
                 distanceKm,
@@ -82,7 +80,7 @@ const getDeliveryCharge = async (origin, destination, apiKey) => {
             destination,
             stack: err.stack
         });
-        
+
         // Throw error instead of returning default values
         throw new Error(`Failed to calculate delivery charge: ${err.message}`);
     }

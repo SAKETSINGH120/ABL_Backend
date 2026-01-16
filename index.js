@@ -4,15 +4,17 @@ process.on("uncaughtException", (err) => {
   console.log(err.stack);
   process.exit(1);
 });
-const mongoose = require("mongoose");
+
 const dotenv = require("dotenv");
+dotenv.config({ path: "config.env" });
+
+
+const mongoose = require("mongoose");
 const app = require("./src/app");
 
 // new code
 const http = require("http"); // Required for raw server
 const { Server } = require("socket.io");
-
-dotenv.config({ path: "config.env" });
 
 mongoose
   .connect(process.env.DB_URL)

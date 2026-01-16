@@ -102,6 +102,8 @@ exports.getNewCart = async (req, res) => {
     });
 
     const packingCharge = Number(vendor.packingCharge) || 0;
+
+    // Need to get gst from setting
     const gst = Math.ceil((subtotal + packingCharge + deliveryCharge + platformFee) * 0.18);
 
     const grandTotal = subtotal + packingCharge + deliveryCharge + platformFee + gst;

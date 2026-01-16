@@ -3,16 +3,14 @@ const { Schema } = mongoose;
 
 const ProductDataSchema = new Schema({
     productId: { type: Schema.Types.ObjectId, ref: 'VendorProduct', required: true },
+    variantId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "VariantType"
+    },
     price: { type: Number, required: true },
     quantity: { type: Number, required: true },
-    toppings: [
-        {
-            toppingId: { type: Schema.Types.ObjectId, ref: "Toppins", required: true },
-            price: { type: Number, required: true, min: 0 }
-        }
-    ],
     finalPrice: { type: Number, required: true },
-    cookingInstruction: { type: String, default: '' }, // ✅ Add this
+    // cookingInstruction: { type: String, default: '' },
 }, { _id: false });
 
 const AppliedCouponSchema = new Schema({
@@ -23,7 +21,7 @@ const AppliedCouponSchema = new Schema({
 
 const OrderSchema = new Schema({
     booking_id: { type: String, required: true },
-    shopId: { type: Schema.Types.ObjectId, ref: 'Shop', required: true },
+    // shopId: { type: Schema.Types.ObjectId, ref: 'Shop', required: true },
     vendorId: { type: Schema.Types.ObjectId, ref: 'Vendor', required: true },
     productData: { type: [ProductDataSchema], required: true },
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
@@ -47,7 +45,7 @@ const OrderSchema = new Schema({
     gstValue: { type: Number, default: 0 },
     gstAmount: { type: Number, default: 0 },
     packingCharge: { type: Number, default: 0 },
-    serviceType: { type: String, enum: ['food', 'grocery'], default: 'food' },
+    // serviceType: { type: String, enum: ['food', 'grocery'], default: 'food' },
     finalTotalPrice: { type: Number, required: true },
     orderStatus: {
         type: String,

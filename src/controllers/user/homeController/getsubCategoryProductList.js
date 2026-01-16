@@ -10,20 +10,33 @@ const mongoose = require('mongoose');
 exports.getsubCategoryProductList = catchAsync(async (req, res, next) => {
   try {
     const userId = req.user._id;
-    console.log('🚀 ~ userId:', userId);
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
     const subCategoryId = req.params.subCategoryId;
 
-    const productList = await VendorProduct.find({ status: 'active', subCategoryId: subCategoryId, isDeleted: false })
-      .populate('variants.variantTypeId', 'name')
-      .populate('unitOfMeasurement', 'name -_id');
-    const cartProducts = await newCart.findOne({ userId: userId });
+    if (!user.pincode) {
+      return res.status(400).json({
+        success: false,
+        message: 'Pincode is required'
+      });
+    }
 
-    const cartProductIds = cartProducts ? cartProducts.items.map((item) => item?.productId.toString()) : [];
-    const cartProductVariantIds = cartProducts ? cartProducts.items.map((item) => item?.variantId?.toString()) : [];
-    console.log('🚀 ~ cartProducts:', JSON.stringify(cartProducts));
+    const vendor = await Vendor.findOne({ status: true, pincode: user.pincode }).select('_id');
+    const vendorId = vendor?._id;
+
+    const productQuery = {
+      status: 'active',
+      subCategoryId: subCategoryId,
+      isDeleted: false,
+    };
+    if (vendorId) {
+      productQuery.vendorId = vendorId;
+    }
+
+    const [productList, cartProducts] = await Promise.all([VendorProduct.find(productQuery)
+      .populate('variants.variantTypeId', 'name')
+      .populate('unitOfMeasurement', 'name -_id'), newCart.findOne({ userId: userId, status: 'active' })]);
 
     if (!productList || productList.length === 0) {
       return res.status(404).json({
@@ -33,7 +46,6 @@ exports.getsubCategoryProductList = catchAsync(async (req, res, next) => {
     }
 
     const cartMap = new Map();
-    console.log('🚀 ~ cartMap:', cartMap);
 
     if (cartProducts) {
       cartProducts.items.forEach((item) => {
@@ -57,22 +69,8 @@ exports.getsubCategoryProductList = catchAsync(async (req, res, next) => {
         rating: prod.rating,
         mrp: prod.mrp,
         unitOfMeasurement: prod.unitOfMeasurement,
-        // ✅ FIXED
         isInCart: cartMap.has(productKey),
         cartQty: cartMap.get(productKey) || 0,
-        // isInCart: cartProductIds.includes(prod._id.toString()),
-        // variants: prod.variants.map((variant) => ({
-        //   _id: variant._id,
-        //   variantTypeId: variant.variantTypeId,
-        //   sku: variant.sku || '',
-        //   variantName: variant.variantName || '',
-        //   mrp: variant.mrp,
-        //   sellingPrice: variant.sellingPrice,
-        //   sellingUnit: variant.sellingUnit,
-        //   stock: variant.stock || 0,
-        //   status: variant.status || 'active',
-        //   isInCart: cartProductVariantIds.includes(variant._id.toString())
-        // }))
         variants: prod.variants.map((variant) => {
           const variantKey = `${prod._id}_${variant._id}`;
 
@@ -98,7 +96,8 @@ exports.getsubCategoryProductList = catchAsync(async (req, res, next) => {
     return res.status(200).json({
       success: true,
       message: 'Product List retrieved successfully',
-      productData
+      productData,
+      isServiceable: vendorId ? true : false
     });
   } catch (error) {
     console.error('Error in get sub category data controller:', error);

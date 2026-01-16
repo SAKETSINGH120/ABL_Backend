@@ -4,7 +4,7 @@ const catchAsync = require('../../../utils/catchAsync');
 const bcrypt = require('bcrypt');
 
 exports.signUp = catchAsync(async (req, res, next) => {
-  let { name, userId, password, mobile, alternateMobile, benificiaryName, email, panNo, gstNo, foodLicense, ifsc, bankName, branchName, accountNo, agreement, deviceId, deviceToken } = req.body;
+  let { name, userId, password, mobile, alternateMobile, benificiaryName, email, panNo, gstNo, foodLicense, ifsc, bankName, branchName, accountNo, agreement, deviceId, deviceToken, address, pincode, city, state, latitude, longitude, deliveryCharge, packingCharge } = req.body;
 
   const files = req.files;
   const profileImg = files.profileImg && files.profileImg[0] ? files.profileImg[0].path : '';
@@ -21,6 +21,11 @@ exports.signUp = catchAsync(async (req, res, next) => {
   if (!mobile) return next(new AppError('Mobile number is required.', 400));
   if (!panNo) return next(new AppError('PAN number is required.', 400));
   if (!panImage) return next(new AppError('PAN image is required.', 400));
+  if (!pincode) return next(new AppError('Pincode is required.', 400));
+  if (!latitude) return next(new AppError('Latitude is required.', 400));
+  if (!longitude) return next(new AppError('Longitude is required.', 400));
+  if (!deliveryCharge) return next(new AppError('Delivery charge is required.', 400));
+  if (!packingCharge) return next(new AppError('Packing charge is required.', 400));
 
   const vendoruserId = await Vendor.findOne({ userId });
   if (vendoruserId) return next(new AppError('User Id is already exists. Plz enter different User Id', 400));
@@ -28,6 +33,11 @@ exports.signUp = catchAsync(async (req, res, next) => {
   if (vendorMobile) return next(new AppError('Mobile No is already exists. Plz enter different Mobile No.', 400));
 
   var hashPassword = await bcrypt.hash(password, 12);
+
+  const location = {
+    type: "Point",
+    coordinates: [longitude, latitude]
+  };
 
   const newVendor = await Vendor.create({
     name,
@@ -51,7 +61,14 @@ exports.signUp = catchAsync(async (req, res, next) => {
     passbook,
     agreementAccepted: agreement || false,
     deviceId,
-    deviceToken
+    deviceToken,
+    address,
+    pincode,
+    city,
+    state,
+    location,
+    deliveryCharge,
+    packingCharge
   });
 
   return res.status(201).json({

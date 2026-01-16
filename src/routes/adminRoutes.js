@@ -339,7 +339,6 @@ router.get('/neworder', adminAuthenticate, getAllNewOrder);
 // router.patch("/neworder/status/:orderId", adminAuthenticate, orderComplete)
 router.get('/neworder/:orderId', adminAuthenticate, getNewOrder);
 router.get('/neworder/:orderId/driverlist', adminAuthenticate, getAllDriverForThisNewOrder);
-
 router.patch('/neworder/assign/:orderId', adminAuthenticate, assignNewDriver);
 
 //------------------------------------------------

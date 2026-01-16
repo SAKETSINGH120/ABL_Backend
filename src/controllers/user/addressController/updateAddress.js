@@ -3,8 +3,6 @@ const User = require("../../../models/user");
 const AppError = require("../../../utils/AppError");
 const catchAsync = require("../../../utils/catchAsync");
 
-
-
 exports.updateAddress = catchAsync(async (req, res, next) => {
     const { addressId } = req.params;
     const userId = req.user._id;
@@ -13,8 +11,10 @@ exports.updateAddress = catchAsync(async (req, res, next) => {
     let address = await Address.findOne({ _id: addressId, userId });
     if (!address) return next(new AppError("Address not found", 404));
 
+    const location = address.location;
+
     // Update fields
-    const { name, address1, address2, city, pincode, state, isDefault, status } = req.body;
+    const { name, address1, address2, city, pincode, state, isDefault, status, lat, long, personName, personMob, landmark } = req.body;
 
     if (name !== undefined) address.name = name;
     if (address1 !== undefined) address.address1 = address1;
@@ -23,6 +23,12 @@ exports.updateAddress = catchAsync(async (req, res, next) => {
     if (pincode !== undefined) address.pincode = pincode;
     if (state !== undefined) address.state = state;
     if (status !== undefined) address.status = status;
+    if (personName !== undefined) address.personName = personName;
+    if (personMob !== undefined) address.personMob = personMob;
+    if (long !== undefined) location.coordinates[0] = long;
+    if (lat !== undefined) location.coordinates[1] = lat;
+    if (landmark !== undefined) address.landmark = landmark;
+    address.location = location;
 
     // Handle isDefault
     if (typeof isDefault === "boolean") {

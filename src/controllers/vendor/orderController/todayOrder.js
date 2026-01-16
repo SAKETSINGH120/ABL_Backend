@@ -37,7 +37,7 @@ exports.todayOrder = catchAsync(async (req, res, next) => {
             .populate("productData.productId")
             // .populate("couponId")
             .populate("addressId")
-            .populate("shopId", "name location packingCharge")
+            // .populate("shopId", "name location packingCharge")
             .populate("vendorId", "name email")
             .sort({ createdAt: -1 });
 
@@ -93,7 +93,7 @@ exports.todayOrder = catchAsync(async (req, res, next) => {
                         sellingUnit: item.productId?.sellingUnit,
                         shortDescription: item.productId?.shortDescription,
                         longDescription: item.productId?.longDescription,
-                        serviceId: item.productId?.serviceId,
+                        // serviceId: item.productId?.serviceId,
                         vendorId: item.productId?.vendorId,
                         status: item.productId?.status,
                         createdAt: item.productId?.createdAt,

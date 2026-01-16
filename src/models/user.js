@@ -37,6 +37,7 @@ const userSchema = new mongoose.Schema(
     deviceId: { type: String, default: "" },
     deviceToken: { type: String, default: "" },
     isGuest: { type: Boolean, default: false },
+    pincode: { type: String, default: "" },
   },
   {
     timestamps: true,

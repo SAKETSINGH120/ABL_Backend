@@ -2,10 +2,8 @@ const Driver = require("../../../models/driver")
 const newOrder = require("../../../models/newOrder")
 const catchAsync = require("../../../utils/catchAsync")
 
-
 exports.getAllDriverForThisNewOrder = catchAsync(async (req, res) => {
     const { orderId } = req.params;
-
     // Fetch the order details
     const order = await newOrder.findById(orderId).populate('addressId');
 
@@ -53,8 +51,6 @@ exports.getAllDriverForThisNewOrder = catchAsync(async (req, res) => {
     ]);
 
     // const allDriver = await Driver.find();
-
-
     return res.status(200).json({
         status: true,
         results: allDriver.length,

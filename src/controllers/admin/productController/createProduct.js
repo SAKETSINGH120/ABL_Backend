@@ -7,6 +7,15 @@ const validateRequiredField = (field, fieldName) => {
     return null;
 };
 
+const parseBool = (val) => {
+    if (val === undefined || val === null) return false;
+    if (typeof val === 'boolean') return val;
+    if (typeof val === 'number') return val === 1;
+    if (typeof val === 'string') return val.toLowerCase() === 'true' || val === '1';
+    return Boolean(val);
+};
+
+/*
 exports.createProduct = catchAsync(async (req, res, next) => {
     let { name, categoryId, subCategoryId, sku, mrp, sellingPrice, discount, unitOfMeasurement, sellingUnit, shortDescription, longDescription, serviceId, type } = req.body;
 
@@ -54,20 +63,20 @@ exports.createProduct = catchAsync(async (req, res, next) => {
     }
 
     let product = new Product({
-        name, 
-        categoryId, 
+        name,
+        categoryId,
         subCategoryId,
-        sku, 
-        primary_image: primaryImage, 
-        gallery_image: galleryimagePaths, 
-        mrp, 
-        sellingPrice, 
-        discount: discount || "", 
-        unitOfMeasurement, 
-        sellingUnit, 
-        shortDescription, 
-        longDescription, 
-        serviceId, 
+        sku,
+        primary_image: primaryImage,
+        gallery_image: galleryimagePaths,
+        mrp,
+        sellingPrice,
+        discount: discount || "",
+        unitOfMeasurement,
+        sellingUnit,
+        shortDescription,
+        longDescription,
+        serviceId,
         type
     });
 
@@ -78,5 +87,107 @@ exports.createProduct = catchAsync(async (req, res, next) => {
         message: "Product added successfully.",
         data: { product },
         newProduct: true,
+    });
+});
+*/
+
+exports.createProduct = catchAsync(async (req, res, next) => {
+    const {
+        name,
+        categoryId,
+        subCategoryId,
+        brandId,
+        mrp,
+        sellingPrice,
+        unitOfMeasurement,
+        sellingUnit,
+        shortDescription,
+        longDescription,
+        stock,
+        isRecommended,
+        isFeatured,
+        isSeasonal,
+        isVegetableOfTheDay,
+        isFruitOfTheDay,
+        isDealOfTheDay, variant
+    } = req.body;
+
+    let variants = [];
+    if (variant) {
+        variants = JSON.parse(variant);
+    }
+
+    const requiredFields = [
+        { field: name, name: 'Product name' },
+        { field: categoryId, name: 'Category ID' },
+        { field: mrp, name: 'MRP' },
+        { field: sellingPrice, name: 'Selling price' },
+        { field: unitOfMeasurement, name: 'Unit of measurement' },
+        { field: sellingUnit, name: 'Selling unit' },
+        { field: shortDescription, name: 'Short Description' },
+        { field: stock, name: 'Stock' }
+    ];
+
+    for (const { field, name } of requiredFields) {
+        const error = validateRequiredField(field, name);
+        if (error) return next(error);
+    }
+
+    let galleryimagePaths;
+    if (req.files && req.files.gallery_image) {
+        const imagesUrls = req.files.gallery_image.map((file) => {
+            return `${file.destination}/${file.filename}`;
+        });
+        galleryimagePaths = imagesUrls;
+    }
+
+    let primaryImage;
+    if (req.files && req.files.primary_image) {
+        const url = `${req.files.primary_image[0].destination}/${req.files.primary_image[0].filename}`;
+        primaryImage = url;
+    } else {
+        primaryImage = '';
+    }
+
+    const processedVariants = variants.map((variant) => ({
+        variantTypeId: variant.variantTypeId,
+        variantName: variant.variantName || '',
+        mrp: variant.mrp,
+        sellingPrice: variant.sellingPrice,
+        sellingUnit: variant.sellingUnit,
+        stock: variant.stock || 0,
+        status: variant.status || 'active'
+    }));
+
+    const product = new Product({
+        name,
+        categoryId,
+        subCategoryId: subCategoryId || null,
+        brandId,
+        primary_image: primaryImage,
+        gallery_image: galleryimagePaths,
+        mrp,
+        sellingPrice: sellingPrice,
+        unitOfMeasurement,
+        sellingUnit,
+        shortDescription,
+        longDescription,
+        stock,
+        isRecommended: parseBool(isRecommended),
+        isFeatured: parseBool(isFeatured),
+        isSeasonal: parseBool(isSeasonal),
+        isVegetableOfTheDay: parseBool(isVegetableOfTheDay),
+        isFruitOfTheDay: parseBool(isFruitOfTheDay),
+        isDealOfTheDay: parseBool(isDealOfTheDay),
+        variants: processedVariants
+    });
+
+    await product.save();
+
+    return res.status(201).json({
+        status: true,
+        message: 'Product added successfully.',
+        data: { product },
+        newProduct: true
     });
 });

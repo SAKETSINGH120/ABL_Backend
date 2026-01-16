@@ -3,7 +3,7 @@ const User = require("../../../models/user");
 const updateLatLong = async (req, res) => {
     try {
         const userId = req.user._id;
-        const { lat, long } = req.body;
+        const { lat, long, pincode } = req.body;
 
         if (!lat || !long) {
             return res.status(400).json({ success: false, message: 'Latitude and Longitude are required' });
@@ -19,6 +19,7 @@ const updateLatLong = async (req, res) => {
             type: 'Point',
             coordinates: [parseFloat(long), parseFloat(lat)]
         };
+        user.pincode = pincode;
         await user.save();
 
         return res.status(200).json({

@@ -6,32 +6,30 @@ exports.getNewOrderDetails = catchAsync(async (req, res, next) => {
         const { orderId } = req.params;
 
         const order = await newOrder.findById(orderId)
-            .populate("productData.productId", "name primary_image") // assuming image exists
-            .populate("userId", "name email location")
+            .populate("productData.productId", "name primary_image")
+            .populate("userId", "name email location mobileNo")
             .populate("addressId", "name address1 address2 city pincode state location")
-            .populate("shopId", "name location")
             .populate("assignedDriver", "name")
             .populate("vendorId", "name email");
-        console.log("order",order);
+
         if (!order) {
             return res.status(404).json({ success: false, message: "Order not found" });
         }
-        
 
         const response = {
             success: true,
             order: {
-                shop: {
-                    name: order.shopId.name,
-                    coordinates: order.shopId.location?.coordinates || []
-                },
                 user: {
                     name: order.userId.name,
-                    coordinates: order.userId.location?.coordinates || []
+                    coordinates: order.userId.location?.coordinates || [],
+                    mobileNo: order.userId.mobileNo
                 },
                 products: order.productData.map(item => ({
                     name: item.productId.name,
-                    image: item.productId.primary_image || null // or provide a placeholder if needed
+                    image: item.productId.primary_image || null,
+                    price: item.price,
+                    quantity: item.quantity,
+                    finalPrice: item.finalPrice,
                 })),
                 address: {
                     name: order.addressId.name,
@@ -40,12 +38,23 @@ exports.getNewOrderDetails = catchAsync(async (req, res, next) => {
                     city: order.addressId.city,
                     pincode: order.addressId.pincode,
                     state: order.addressId.state,
-                    coordinates: order.addressId.location?.coordinates || []
+                    coordinates: order.addressId.location?.coordinates || [],
+                    landmark: order.addressId.landmark
                 },
-                statusData:{
+                statusData: {
                     assignTo: order.assignedDriver?.name,
                     status: order.orderStatus,
-                }
+                },
+                orderStatus: order.orderStatus,
+                paymentStatus: order.paymentStatus,
+                totalAmount: order.totalAmount,
+                discountAmount: order.discountAmount,
+                finalAmount: order.finalTotalPrice,
+                orderDate: order.createdAt,
+                gstAmount: order.gstAmount,
+                plateFormFee: order.plateFormFee,
+                deliveryCharge: order.deliveryCharge,
+                bookingId: order.booking_id
             }
         };
 

@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
+const { productVariantSchema } = require('./vendorProduct');
 
+/*
 const ProductSchema = new mongoose.Schema({
     categoryId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -82,6 +84,38 @@ const ProductSchema = new mongoose.Schema({
         type: String,
         default: 'admin'
     }
+});
+*/
+
+const ProductSchema = new mongoose.Schema({
+    productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', default: null },
+    categoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true },
+    subCategoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'SubCategory', default: null },
+    brandId: { type: mongoose.Schema.Types.ObjectId, ref: 'Brand', default: null },
+    primary_image: { type: String, required: true },
+    gallery_image: [{ type: String, required: true }],
+    name: { type: String, required: true },
+    mrp: { type: String, required: true },
+    sellingPrice: { type: String, required: true },
+    unitOfMeasurement: { type: mongoose.Schema.Types.ObjectId, ref: 'VariantType', required: true },
+    sellingUnit: { type: String, required: true },
+    shortDescription: { type: String, required: true },
+    longDescription: { type: String },
+    stock: {
+        type: Number,
+        default: 0
+    },
+    isRecommended: { type: Boolean, default: false },
+    isFeatured: { type: Boolean, default: false },
+    isSeasonal: { type: Boolean, default: false },
+    isVegetableOfTheDay: { type: Boolean, default: false },
+    isFruitOfTheDay: { type: Boolean, default: false },
+    isDealOfTheDay: { type: Boolean, default: false },
+    status: { type: String, enum: ['active', 'inactive'], default: 'active' },
+    rating: { type: String, default: '0' },
+    variants: [productVariantSchema],
+    isDeleted: { type: Boolean, default: false },
+    createdAt: { type: Date, default: Date.now }
 });
 
 const Product = mongoose.model("Product", ProductSchema)

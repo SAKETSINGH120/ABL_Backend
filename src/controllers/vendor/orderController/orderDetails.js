@@ -8,11 +8,11 @@ exports.orderDetails = catchAsync(async (req, res, next) => {
 
         const order = await newOrder.findById(orderId)
             .populate("productData.productId", "name primary_image")
-            .populate("productData.toppings.toppingId", "name")
+            // .populate("productData.toppings.toppingId", "name")
             .populate("userId", "name email mobileNo profileImage")
             .populate("addressId", "personName personMob address1 city state pincode")
             // .populate("couponId", "code amount") 
-            .populate("shopId", "name location packingCharge address")
+            // .populate("shopId", "name location packingCharge address")
             .populate("vendorId", "name email");
 
         if (!order) {
@@ -35,15 +35,14 @@ exports.orderDetails = catchAsync(async (req, res, next) => {
             packingCharge: order.packingCharge,
             deliveryCharge: order.deliveryCharge,
             finalTotalPrice: order.finalTotalPrice,
-
             productData: order.productData.map((item) => ({
                 quantity: item.quantity,
                 price: item.price,
                 finalPrice: item.finalPrice,
-                toppings: item.toppings.map(t => ({
-                    name: t.toppingId?.name,
-                    price: t.price
-                })),
+                // toppings: item.toppings.map(t => ({
+                //     name: t.toppingId?.name,
+                //     price: t.price
+                // })),
                 productId: {
                     _id: item.productId?._id,
                     name: item.productId?.name,
@@ -67,11 +66,11 @@ exports.orderDetails = catchAsync(async (req, res, next) => {
                 pincode: order.addressId?.pincode
             },
 
-            shopId: {
-                name: order.shopId?.name,
-                packingCharge: order.shopId?.packingCharge,
-                address: order.shopId?.address
-            },
+            // shopId: {
+            //     name: order.shopId?.name,
+            //     packingCharge: order.shopId?.packingCharge,
+            //     address: order.shopId?.address
+            // },
 
             vendorId: {
                 name: order.vendorId?.name,

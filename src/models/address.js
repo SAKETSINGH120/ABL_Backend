@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const addressSchema = mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  name: { type: String, default: 'Home' },
+  name: { type: String, enum: ['Home', 'Office', 'Other'], default: 'Home' },
   address1: { type: String, required: true },
   address2: { type: String },
   city: { type: String, required: true },
@@ -16,7 +16,8 @@ const addressSchema = mongoose.Schema({
     type: { type: String, enum: ['Point'], default: 'Point' },
     coordinates: { type: [Number] } // [long, lat]
   },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  landmark: { type: String }
 });
 
 const Address = mongoose.model('Address', addressSchema);

@@ -15,12 +15,12 @@ exports.getAddress = catchAsync(async (req, res, next) => {
       status: true,
       message: "Address fetched successfully",
       address,
-      deliveryPriceInfo: [
-        { range: "0-5", price: 5 },
-        { range: "5-10", price: 7 },
-        { range: "10-20", price: 9 },
-        { range: "20-2000", price: 10 },
-      ],
+      // deliveryPriceInfo: [
+      //   { range: "0-5", price: 5 },
+      //   { range: "5-10", price: 7 },
+      //   { range: "10-20", price: 9 },
+      //   { range: "20-2000", price: 10 },
+      // ],
     });
   } catch (error) {
     return res.status(500).json({
