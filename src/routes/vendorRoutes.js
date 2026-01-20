@@ -38,7 +38,7 @@ const { getTermCondition } = require('../controllers/vendor/cmsController/getTer
 const { getFee } = require('../controllers/vendor/cmsController/getFee');
 const { createCopyProduct } = require('../controllers/vendor/copyProductController/createCopyProduct');
 const { createBulkCopyProduct } = require('../controllers/vendor/copyProductController/createBulkCopyProduct');
-const { getAllProductForAssign } = require('../controllers/vendor/copyProductController/getAllProductForAssign');
+const { getAllProductForAssign, getAllAdminProductForAssign } = require('../controllers/vendor/copyProductController/getAllProductForAssign');
 const { getAllProductOfShop } = require('../controllers/vendor/copyProductController/getAllProductOfShop');
 const { getCopyProductDetail } = require('../controllers/vendor/copyProductController/getCopyProductDetail');
 const { updateCopyProductStatus } = require('../controllers/vendor/copyProductController/updateCopyProductStatus');
@@ -240,6 +240,7 @@ router.patch(
 // copy product
 //------------------------------------------------
 router.post('/copy/product/create', vendorAuthenticate, createCopyProduct);
+router.get('/copy/product/choose', vendorAuthenticate, getAllAdminProductForAssign);
 router.get('/copy/product/all', vendorAuthenticate, getAllProductForAssign); // this api for vendor side
 router.get('/shop/product/:shopId', vendorAuthenticate, getAllProductOfShop);
 router.get('/copy/product/:id', vendorAuthenticate, getCopyProductDetail); // this api for vendor side

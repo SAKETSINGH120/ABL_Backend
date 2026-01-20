@@ -61,7 +61,14 @@ exports.getHomeDataGrocery = catchAsync(async (req, res) => {
     });
   }
 
-  const vendor = await Vendor.findOne({ status: true, pincode: user.pincode }).select('_id');
+  const vendorMatchQuery = { status: true };
+
+  // will uncomment this code when we will add pincode in vendor
+  // if (user.pincode) {
+  //   vendorMatchQuery.pincode = user.pincode;
+  // }
+
+  const vendor = await Vendor.findOne(vendorMatchQuery).select('_id');
   const vendorId = vendor?._id;
 
 
