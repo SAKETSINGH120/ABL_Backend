@@ -18,7 +18,7 @@ const normalizeStatus = (status) => {
  */
 const STATUS_TIMESTAMP_FIELD = {
     accepted: "acceptedAt",
-    preparing: "preparationStartedAt",
+    start_packing: "packingStartedAt",
     delay: "dealyAt",
     ready: "readyAt",
     shipped: "shippedAt",
@@ -56,20 +56,31 @@ const LOCKED_STATUSES = new Set([
  */
 const ALLOWED_TRANSITIONS = {
     pending: ["accepted", "cancelledByVendor"],
-    accepted: ["preparing", "cancelledByVendor"],
-    preparing: ["delay", "ready", "cancelledByVendor"],
-    // once ready, vendor can't change anything (driver takes over)
+    accepted: ["start_packing", "cancelledByVendor"],
+    start_packing: ["delay", "ready", "cancelledByVendor"],
+    delay: ["ready", "cancelledByVendor"],
+    ready: ["shipped", "cancelledByVendor"],
+    shipped: ["picked up", "cancelledByVendor"],
+    "picked up": ["running", "cancelledByVendor"],
+    running: ["out of delivery", "cancelledByVendor"],
+    "out of delivery": ["delivered", "cancelledByVendor"],
+    delivered: ["cancelledByVendor"],
+    cancelledByVendor: ["cancelled"],
+    cancelledByUser: ["cancelled"],
+    cancelledByDriver: ["cancelled"],
+    cancelledByAdmin: ["cancelled"],
+    cancelled: ["cancelled"],
 };
 
 exports.changeOrderStatus = catchAsync(async (req, res) => {
     const { orderId } = req.params;
-    let { status, preparationTime } = req.body;
+    let { status, packingTime } = req.body;
 
     status = normalizeStatus(status);
 
     const VENDOR_ALLOWED = new Set([
         "accepted",
-        "preparing",
+        "start_packing",
         "delay",
         "ready",
         "cancelledByVendor",
@@ -82,11 +93,11 @@ exports.changeOrderStatus = catchAsync(async (req, res) => {
     }
 
     // For preparing / delay we require a positive preparationTime
-    const needsTime = status === "preparing" || status === "delay";
-    if (needsTime && (!preparationTime || Number(preparationTime) <= 0)) {
+    const needsTime = status === "start_packing" || status === "delay";
+    if (needsTime && (!packingTime || Number(packingTime) <= 0)) {
         return res
             .status(400)
-            .json({ success: false, message: "Enter a valid preparation time" });
+            .json({ success: false, message: "Enter a valid packing time" });
     }
 
     const order = await newOrder.findById(orderId);
@@ -108,21 +119,21 @@ exports.changeOrderStatus = catchAsync(async (req, res) => {
 
     // Handle delay separately
     if (status === "delay") {
-        if (current !== "preparing") {
+        if (current !== "start_packing") {
             return res.status(400).json({
                 success: false,
-                message: "You can only delay an order that is currently preparing.",
+                message: "You can only delay an order that is currently start_packing.",
             });
         }
 
-        order.preparationTime =
-            (order.preparationTime || 0) + Number(preparationTime);
+        order.packingTime =
+            (order.packingTime || 0) + Number(packingTime);
         order.dealyAt = new Date(); // field name in schema is `dealyAt`
         await order.save();
 
         return res.status(200).json({
             success: true,
-            message: "Preparation time extended",
+            message: "Packing time extended",
             order,
         });
     }
@@ -140,7 +151,7 @@ exports.changeOrderStatus = catchAsync(async (req, res) => {
     // Business rule: vendor can only cancel pending/accepted/preparing
     if (
         next === "cancelledByVendor" &&
-        !["pending", "accepted", "preparing"].includes(current)
+        !["pending", "accepted", "start_packing"].includes(current)
     ) {
         return res.status(400).json({
             success: false,
@@ -159,17 +170,17 @@ exports.changeOrderStatus = catchAsync(async (req, res) => {
             });
             break;
 
-        case "preparing":
-            order.orderStatus = "preparing";
-            order.preparationStartedAt = new Date();
-            order.preparationTime = Number(preparationTime);
+        case "start_packing":
+            order.orderStatus = "start_packing";
+            order.packingStartedAt = new Date();
+            order.packingTime = Number(packingTime);
             break;
 
         case "ready":
-            if (current !== "preparing") {
+            if (current !== "start_packing") {
                 return res.status(400).json({
                     success: false,
-                    message: "Order must be in preparing before it can be marked ready.",
+                    message: "Order must be in start_packing before it can be marked ready.",
                 });
             }
             order.orderStatus = "ready";

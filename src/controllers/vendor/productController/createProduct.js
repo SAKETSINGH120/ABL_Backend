@@ -8,8 +8,7 @@ const validateRequiredField = (field, fieldName) => {
 };
 
 exports.createProduct = catchAsync(async (req, res, next) => {
-    let { name, categoryId, subCategoryId, brandId, sku, mrp, sellingPrice, discount, unitOfMeasurement, sellingUnit, shortDescription, longDescription, serviceId, status,addedBy } = req.body;
-    console.log(req.body);
+    let { name, categoryId, subCategoryId, brandId, sku, mrp, sellingPrice, discount, unitOfMeasurement, sellingUnit, shortDescription, longDescription, serviceId, status, addedBy } = req.body;
     let vendorId = req.vendor._id
 
     const requiredFields = [
@@ -73,7 +72,7 @@ exports.createProduct = catchAsync(async (req, res, next) => {
     });
 
     await product.save();
- 
+
     return res.status(201).json({
         status: true,
         message: "Product added successfully.",

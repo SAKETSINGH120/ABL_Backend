@@ -113,7 +113,7 @@ exports.getAllNewOrder = async (req, res) => {
     const counts = {
       new: statusCountMap.pending || 0,
       accepted: statusCountMap.accepted || 0,
-      preparing: (statusCountMap.preparing || 0) + (statusCountMap.dealy || 0),
+      start_packing: (statusCountMap.start_packing || 0) + (statusCountMap.dealy || 0),
       ready: statusCountMap.ready || 0,
       shipped: statusCountMap.shipped || 0,
       pickedup: statusCountMap["picked up"] || 0,

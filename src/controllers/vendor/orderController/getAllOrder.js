@@ -14,8 +14,8 @@ exports.getAllOrder = catchAsync(async (req, res, next) => {
             filter.orderStatus = "pending"
         } else if (type === "accepted") {
             filter.orderStatus = "accepted";
-        } else if (type === "preparing") {
-            filter.orderStatus = { $in: ["preparing", "dealy"] };
+        } else if (type === "start_packing") {
+            filter.orderStatus = { $in: ["start_packing", "dealy"] };
         } else if (type === "ready") {
             filter.orderStatus = "ready";
         } else if (type === "pickedup") {
@@ -85,7 +85,7 @@ const orders = await newOrder.find(filter)
         const counts = {
             new: statusCountMap.pending || 0,
             accepted: statusCountMap.accepted || 0,
-            preparing: (statusCountMap.preparing || 0) + (statusCountMap.dealy || 0),
+            start_packing: (statusCountMap.start_packing || 0) + (statusCountMap.dealy || 0),
             ready: statusCountMap.ready || 0,
             pickedup: statusCountMap["picked up"] || 0,
             running: statusCountMap.running || 0,

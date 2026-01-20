@@ -109,12 +109,13 @@ exports.createProduct = catchAsync(async (req, res, next) => {
         isSeasonal,
         isVegetableOfTheDay,
         isFruitOfTheDay,
-        isDealOfTheDay, variant
+        isDealOfTheDay,
+        variants
     } = req.body;
 
-    let variants = [];
-    if (variant) {
-        variants = JSON.parse(variant);
+    let variantDetailsList = [];
+    if (variants) {
+        variantDetailsList = JSON.parse(variants);
     }
 
     const requiredFields = [
@@ -149,7 +150,7 @@ exports.createProduct = catchAsync(async (req, res, next) => {
         primaryImage = '';
     }
 
-    const processedVariants = variants.map((variant) => ({
+    const processedVariants = variantDetailsList.map((variant) => ({
         variantTypeId: variant.variantTypeId,
         variantName: variant.variantName || '',
         mrp: variant.mrp,

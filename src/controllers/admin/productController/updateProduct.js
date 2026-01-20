@@ -118,7 +118,24 @@ exports.updateProduct = catchAsync(async (req, res, next) => {
         return next(new AppError('Invalid product id', 400));
     }
 
-    const { name, categoryId, subCategoryId, brandId, mrp, sellingPrice, discount, unitOfMeasurement, sellingUnit, shortDescription, longDescription, variant, isRecommended, isFeatured, isSeasonal, isVegetableOfTheDay, isFruitOfTheDay, isDealOfTheDay } = req.body;
+    const { name,
+        categoryId,
+        subCategoryId,
+        brandId,
+        mrp,
+        sellingPrice,
+        unitOfMeasurement,
+        sellingUnit,
+        shortDescription,
+        longDescription,
+        stock,
+        isRecommended,
+        isFeatured,
+        isSeasonal,
+        isVegetableOfTheDay,
+        isFruitOfTheDay,
+        isDealOfTheDay,
+        variants } = req.body;
 
     const product = await Product.findById(id);
     if (!product) return next(new AppError('Product not found', 404));
@@ -133,17 +150,17 @@ exports.updateProduct = catchAsync(async (req, res, next) => {
         galleryImages = req.files.gallery_image.map((file) => `${file.destination}/${file.filename}`);
     }
 
-    let variants = [];
-    if (variant) {
+    let variantDetailsList = [];
+    if (variants) {
         try {
-            variants = typeof variant === 'string' ? JSON.parse(variant) : variant;
+            variantDetailsList = typeof variants === 'string' ? JSON.parse(variants) : variants;
         } catch (err) {
-            variants = [];
+            variantDetailsList = [];
         }
     }
 
-    if (Array.isArray(variants) && variants.length > 0) {
-        const processedVariants = variants.map((variant) => ({
+    if (Array.isArray(variantDetailsList) && variantDetailsList.length > 0) {
+        const processedVariants = variantDetailsList.map((variant) => ({
             variantTypeId: variant.variantId || variant.variantTypeId || null,
             variantName: variant.variantName || '',
             mrp: variant.mrp,
@@ -168,7 +185,6 @@ exports.updateProduct = catchAsync(async (req, res, next) => {
     product.subCategoryId = subCategoryId || product.subCategoryId;
     product.brandId = brandId || product.brandId;
     product.mrp = mrp || product.mrp;
-    product.discount = discount || product.discount;
     product.unitOfMeasurement = unitOfMeasurement || product.unitOfMeasurement;
     product.sellingUnit = sellingUnit || product.sellingUnit;
     product.shortDescription = shortDescription || product.shortDescription;

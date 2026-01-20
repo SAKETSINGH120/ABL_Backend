@@ -49,10 +49,12 @@ const OrderSchema = new Schema({
     finalTotalPrice: { type: Number, required: true },
     orderStatus: {
         type: String,
-        enum: ['pending', 'accepted', 'preparing', 'delay', 'ready', 'shipped', 'picked up', 'running', 'out of delivery', 'delivered', 'cancelledByUser', 'cancelledByVendor', 'cancelledByDriver', 'cancelledByAdmin', "cancelled"],
+        enum: ['pending', 'accepted', 'start_packing', 'delay', 'ready', 'shipped', 'picked up', 'running', 'out of delivery', 'delivered', 'cancelledByUser', 'cancelledByVendor', 'cancelledByDriver', 'cancelledByAdmin', "cancelled"],
         default: 'pending'
     },
+    packingTime: { type: Number, default: null },
     preparationTime: { type: Number, default: null },
+    packingStartedAt: { type: Date, default: null },
     preparationStartedAt: { type: Date, default: null },
     acceptedAt: { type: Date, default: null },
     dealyAt: { type: Date, default: null },
