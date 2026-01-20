@@ -90,7 +90,6 @@ exports.createVendorProduct = catchAsync(async (req, res, next) => {
     stock: variant.stock || 0,
     status: variant.status || 'active'
   }));
-  console.log('🚀 ~ processedVariants:', processedVariants);
 
   let product = new VendorProduct({
     name,
