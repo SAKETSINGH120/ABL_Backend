@@ -4,19 +4,9 @@ const AppError = require("../../../utils/AppError");
 const catchAsync = require("../../../utils/catchAsync");
 
 exports.createBulkCopyProduct = catchAsync(async (req, res, next) => {
-
     try {
-
-        let { shopId, selectedProducts } = req.body
-        let vendorId = req.vendor._id
-
-        /**
-        * selectedProducts is array like:
-        * [
-        *    { productId: "123", vendorSellingPrice: "500" },
-        *    { productId: "124", vendorSellingPrice: "800" },
-        * ]
-        */
+        const vendorId = req.vendor._id
+        const { selectedProducts } = req.body
 
         if (!selectedProducts || selectedProducts.length === 0) {
             return next(new AppError("No products selected", 400));
@@ -31,15 +21,12 @@ exports.createBulkCopyProduct = catchAsync(async (req, res, next) => {
             if (!product) return null;
 
             return {
+                variants: product.variants,
                 vendorId,
-                shopId,
-                serviceId: product.serviceId,
                 productId: product._id,
                 categoryId: product.categoryId,
                 subCategoryId: product.subCategoryId,
                 brandId: product.brandId,
-                sku: product.sku,
-                type: product.type,
                 primary_image: product.primary_image,
                 gallery_image: product.gallery_image,
                 name: product.name,
@@ -49,6 +36,15 @@ exports.createBulkCopyProduct = catchAsync(async (req, res, next) => {
                 sellingUnit: product.sellingUnit,
                 shortDescription: product.shortDescription,
                 longDescription: product.longDescription,
+                stock: product.stock,
+                isRecommended: product.isRecommended,
+                isFeatured: product.isFeatured,
+                isSeasonal: product.isSeasonal,
+                isVegetableOfTheDay: product.isVegetableOfTheDay,
+                isFruitOfTheDay: product.isFruitOfTheDay,
+                isDealOfTheDay: product.isDealOfTheDay,
+                status: product.status,
+                rating: product.rating,
             };
         }).filter(item => item !== null);
 
@@ -60,5 +56,4 @@ exports.createBulkCopyProduct = catchAsync(async (req, res, next) => {
         console.error(error);
         return res.status(500).json({ message: "Something went wrong", error: error.message });
     }
-
 })
