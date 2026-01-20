@@ -279,7 +279,7 @@ exports.createNewOrder = async (req, res) => {
     const userId = req.user.id;
     const {
       deliveryDate = new Date(),
-      deliveryTime = "15:20",
+      deliveryTime = "15",
       paymentMode,
       deliveryCharges,
       appliedCouponsFromRequest = [],
@@ -314,12 +314,6 @@ exports.createNewOrder = async (req, res) => {
       return res.status(400).json({ message: "Cart is empty." });
     }
 
-    const vendorId = cart.vendorId;
-    const vendor = await Vendor.findById(vendorId);
-    if (!vendor) {
-      return res.status(404).json({ message: "Vendor not found." });
-    }
-
     const products = [];
     for (const productData of cart.items) {
       products.push({
@@ -332,7 +326,15 @@ exports.createNewOrder = async (req, res) => {
     }
     const totalPrice = products.reduce((sum, p) => sum + p.finalPrice, 0);
 
-    const orderCount = await newOrder.countDocuments();
+    const vendorId = cart.vendorId;
+    const [vendor, orderCount, setting] = await Promise.all([
+      Vendor.findById(vendorId),
+      newOrder.countDocuments(), Setting.findById("680f1081aeb857eee4d456ab").lean()
+    ]);
+    if (!vendor) {
+      return res.status(404).json({ message: "Vendor not found." });
+    }
+
     const orderNumber = (orderCount + 1).toString().padStart(4, "0");
     const booking_id = `ORD${orderNumber}`;
     const destination = {
@@ -343,18 +345,12 @@ exports.createNewOrder = async (req, res) => {
       lat: vendor.location?.coordinates?.[1] ?? "28.639",
       long: vendor.location?.coordinates?.[0] ?? "77.236",
     }
-    const packingCharge = vendor.packingCharge || 0;
-
-    const setting = await Setting.findById("680f1081aeb857eee4d456ab").lean();
 
     // const {
     //   deliveryCharge,
     //   distanceKm,
     //   durationText,
     // } = await getDeliveryCharge(origin, destination, setting.googleMapApiKey);
-
-    let perKmCost = 0;
-    let driverDeliveryCharge = 10;
 
     // if (distanceKm < 3) {
     //   driverDeliveryCharge = setting.driverPayoutLessThan3;
@@ -367,21 +363,21 @@ exports.createNewOrder = async (req, res) => {
     // }
 
     // const deliveryChargeAmount = deliveryCharges ? deliveryCharges.charge : vendor.deliveryCharge ?? 10;
-    const deliveryChargeAmount = 10;
 
+    let perKmCost = 0;
+    let driverDeliveryCharge = 10;
+    const packingCharge = setting.packingCharge || vendor.packingCharge || 0;
+    const deliveryChargeAmount = setting.deliveryCharge || vendor.deliveryCharge || 10;
     const platformFee = Number(setting?.plateformFee) || 10;
+
     const gstValue = Number(setting?.gst) || 18;
-    const gstAmount = ((totalPrice + deliveryChargeAmount + packingCharge + platformFee) * gstValue) / 100;
+    const gstAmount = Math.ceil((totalPrice + deliveryChargeAmount + packingCharge + platformFee) * (gstValue / 100));
     const finalTotalPrice =
       Number(totalPrice) +
       Number(deliveryChargeAmount) +
       Number(packingCharge) +
       Number(platformFee) +
       Number(gstAmount);
-
-    if (isNaN(finalTotalPrice)) {
-      return res.status(400).json({ message: "Invalid final total price" });
-    }
 
     const razorpayAmount = Math.floor(finalTotalPrice * 100);
 

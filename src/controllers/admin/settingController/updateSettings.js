@@ -4,10 +4,7 @@ const catchAsync = require("../../../utils/catchAsync");
 
 exports.updateSettings = catchAsync(async (req, res, next) => {
     try {
-        console.log("req.body", req.body);
-        let { brandName, commission, gst, onboardingFee, plateformFee, finialPlateformFee, email, mobile, address, googleMapApiKey, razorpayKeyId, razorpayKeySecret, driverPayoutLessThan3, driverPayoutMoreThan3, userDeliveryChargeLessThan3,userDeliveryChargeMoreThan3, grocerySmallCartValue,agreement, termAndConditions, privacyPolicy, refundPolicy } = req.body
-
-        console.log("req.body", razorpayKeyId, razorpayKeySecret, googleMapApiKey);
+        const { brandName, commission, gst, onboardingFee, plateformFee, finialPlateformFee, email, mobile, address, googleMapApiKey, razorpayKeyId, razorpayKeySecret, driverPayoutLessThan3, driverPayoutMoreThan3, userDeliveryChargeLessThan3, userDeliveryChargeMoreThan3, grocerySmallCartValue, agreement, termAndConditions, privacyPolicy, refundPolicy, deliveryCharge, packingCharge } = req.body
 
         const { id } = req.params;
 
@@ -45,6 +42,8 @@ exports.updateSettings = catchAsync(async (req, res, next) => {
         setting.termAndConditions = termAndConditions || setting.termAndConditions
         setting.privacyPolicy = privacyPolicy || setting.privacyPolicy
         setting.refundPolicy = refundPolicy || setting.refundPolicy
+        setting.deliveryCharge = deliveryCharge || setting.deliveryCharge
+        setting.packingCharge = packingCharge || setting.packingCharge
         await setting.save()
 
         return res.status(201).json({

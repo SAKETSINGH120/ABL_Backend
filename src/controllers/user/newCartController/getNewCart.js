@@ -18,14 +18,33 @@ exports.getNewCart = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const user = await User.findById(userId);
+    const [user, defaultAddress, cartDoc, setting] = await Promise.all([
+      User.findById(userId),
+      Address.findOne({ userId, isDefault: true }),
+      Cart.findOne({
+        userId,
+        status: 'active'
+      }).populate({
+        path: 'items.productId',
+        select: 'name sellingPrice primary_image mrp sellingUnit',
+        populate: { path: 'unitOfMeasurement', select: 'name -_id' }
+      }),
+      Setting.findById('680f1081aeb857eee4d456ab')
+    ])
+
     if (!user) {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
+    if (!cartDoc || cartDoc.items.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: 'Cart is empty',
+        cart: null,
+        platformFee
+      });
+    }
 
     /* ---------------- USER DELIVERY LOCATION ---------------- */
-    const defaultAddress = await Address.findOne({ userId, isDefault: true });
-
     let destination;
     if (defaultAddress) {
       destination = {
@@ -44,29 +63,6 @@ exports.getNewCart = async (req, res) => {
       });
     }
 
-    /* ---------------- FETCH CART ---------------- */
-    const cartDoc = await Cart.findOne({
-      userId,
-      status: 'active'
-    }).populate({
-      path: 'items.productId',
-      select: 'name sellingPrice primary_image mrp sellingUnit',
-      populate: { path: 'unitOfMeasurement', select: 'name -_id' }
-    });
-
-    const setting = await Setting.findById('680f1081aeb857eee4d456ab');
-    const platformFee = Number(setting?.plateformFee) || 10;
-
-    if (!cartDoc || cartDoc.items.length === 0) {
-      return res.status(200).json({
-        success: true,
-        message: 'Cart is empty',
-        cart: null,
-        platformFee
-      });
-    }
-
-    /* ---------------- FETCH VENDOR ---------------- */
     const vendor = await Vendor.findById(cartDoc.vendorId).select('name lat long packingCharge');
 
     if (!vendor) {
@@ -76,15 +72,17 @@ exports.getNewCart = async (req, res) => {
       });
     }
 
+    // const { distanceKm, durationText, deliveryCharge } = await getDeliveryCharge(origin, destination, setting?.googleMapApiKey);
+
+    const platformFee = Number(setting?.plateformFee) || 10;
+    const packingCharge = Number(setting?.packingCharge) || vendor.packingCharge || 0;
+    const deliveryCharge = Number(setting?.deliveryCharge) || vendor.deliveryCharge || 0;
     const origin = {
       lat: Number(vendor.lat),
       long: Number(vendor.long)
     };
-
-    // const { distanceKm, durationText, deliveryCharge } = await getDeliveryCharge(origin, destination, setting?.googleMapApiKey);
     const distanceKm = 3;
     const durationText = 'OK';
-    const deliveryCharge = 10;
 
     const isDeliveryAvailable = !isNaN(distanceKm) && distanceKm <= 20;
 
@@ -101,10 +99,8 @@ exports.getNewCart = async (req, res) => {
       };
     });
 
-    const packingCharge = Number(vendor.packingCharge) || 0;
-
-    // Need to get gst from setting
-    const gst = Math.ceil((subtotal + packingCharge + deliveryCharge + platformFee) * 0.18);
+    const gstValue = Number(setting?.gst) || 18;
+    const gst = Math.ceil((subtotal + packingCharge + deliveryCharge + platformFee) * (gstValue / 100));
 
     const grandTotal = subtotal + packingCharge + deliveryCharge + platformFee + gst;
 
