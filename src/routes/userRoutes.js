@@ -71,6 +71,7 @@ const { getSearch } = require('../controllers/user/homeController/getSearch');
 const { walletHistoryOfUser } = require('../controllers/user/walletController/walletHistoryOfUser');
 const { getAvailableCoupons } = require('../controllers/user/newCartController/getAvailableCoupons');
 const { getCmsForWeb } = require('../controllers/user/cmsController/getCmsForWeb');
+const { getProducts } = require('../controllers/user/productController');
 const router = express.Router();
 
 // router.get("/test", (req,res)=>{
@@ -92,6 +93,7 @@ router.post('/profile/service', userAuthenticate, changeUserService);
 // Home Food Page
 //------------------------------------------------
 router.get('/home', userAuthenticate, getHomeData);
+router.get('/products', userAuthenticate, getProducts);
 router.get('/shop/list', userAuthenticate, getShopList);
 router.get('/homegrocery', userAuthenticate, getHomeDataGrocery);
 router.get('/category/list', userAuthenticate, getAllCategory);
