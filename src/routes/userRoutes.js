@@ -78,6 +78,7 @@ const { addToWishlist } = require('../controllers/user/wishlistController/addToW
 const { removeFromWishlist } = require('../controllers/user/wishlistController/removeFromWishlist');
 const { getWishlist } = require('../controllers/user/wishlistController/getWishlist');
 const { clearWishlist } = require('../controllers/user/wishlistController/clearWishlist');
+const { getProducts } = require('../controllers/user/productController');
 const router = express.Router();
 
 // router.get("/test", (req,res)=>{
@@ -99,6 +100,7 @@ router.post('/profile/service', userAuthenticate, changeUserService);
 // Home Food Page
 //------------------------------------------------
 router.get('/home', userAuthenticate, getHomeData);
+router.get('/products', userAuthenticate, getProducts);
 router.get('/shop/list', userAuthenticate, getShopList);
 router.get('/homegrocery', userAuthenticate, getHomeDataGrocery);
 router.get('/category/list', userAuthenticate, getAllCategory);
