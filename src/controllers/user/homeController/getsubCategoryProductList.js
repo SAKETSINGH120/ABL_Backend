@@ -1,6 +1,7 @@
 const Category = require('../../../models/category');
 const User = require('../../../models/user');
 const newCart = require('../../../models/newCart');
+const Wishlist = require('../../../models/wishlist');
 const Vendor = require('../../../models/vendor');
 const VendorProduct = require('../../../models/vendorProduct');
 const { calculateOffer } = require('../../../utils/calculateOffer');
@@ -9,7 +10,22 @@ const mongoose = require('mongoose');
 
 exports.getsubCategoryProductList = catchAsync(async (req, res, next) => {
   try {
+    let { sortBy, price, brand } = req.query;
+
+    const sortMap = { price_low: { vendorSellingPrice: 1 }, price_high: { vendorSellingPrice: -1 } };
+    const filterMap = {
+      // for price filtering
+      price_below_99: { $lte: 99 },
+      price_100_199: { $lte: 199, $gte: 100 },
+      price_200_299: { $lte: 299, $gte: 200 },
+      price_300_399: { $lte: 399, $gte: 300 },
+      price_avobe_500: { $gte: '500' }
+    };
+
+    let sortQuery = sortMap[sortBy];
+
     const userId = req.user._id;
+
     const user = await User.findById(userId);
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
 
@@ -22,21 +38,36 @@ exports.getsubCategoryProductList = catchAsync(async (req, res, next) => {
       });
     }
 
-    const vendor = await Vendor.findOne({ status: true, pincode: user.pincode }).select('_id');
+    // review for pincode
+    const vendorMatchQuery = { status: true };
+
+    const vendor = await Vendor.findOne(vendorMatchQuery).select('_id');
+
     const vendorId = vendor?._id;
 
     const productQuery = {
       status: 'active',
       subCategoryId: subCategoryId,
-      isDeleted: false,
+      isDeleted: false
     };
+
+    if (price) {
+      productQuery.vendorSellingPrice = filterMap[price];
+    }
+
+    if (brand) {
+      productQuery.brandId = brand;
+    }
+
     if (vendorId) {
       productQuery.vendorId = vendorId;
     }
 
-    const [productList, cartProducts] = await Promise.all([VendorProduct.find(productQuery)
-      .populate('variants.variantTypeId', 'name')
-      .populate('unitOfMeasurement', 'name -_id'), newCart.findOne({ userId: userId, status: 'active' })]);
+    const [productList, cartProducts, wishlist] = await Promise.all([
+      VendorProduct.find(productQuery).populate('variants.variantTypeId', 'name').populate('unitOfMeasurement', 'name -_id').populate('brandId', 'name').sort(sortQuery),
+      newCart.findOne({ userId: userId, status: 'active' }),
+      Wishlist.findOne({ userId })
+    ]);
 
     if (!productList || productList.length === 0) {
       return res.status(404).json({
@@ -54,6 +85,14 @@ exports.getsubCategoryProductList = catchAsync(async (req, res, next) => {
       });
     }
 
+    const wishlistSet = new Set();
+
+    if (wishlist) {
+      wishlist.items.forEach((item) => {
+        wishlistSet.add(item.productId.toString());
+      });
+    }
+
     const productData = productList.map((prod) => {
       const productKey = `${prod._id}_no-variant`;
       return {
@@ -62,6 +101,7 @@ exports.getsubCategoryProductList = catchAsync(async (req, res, next) => {
         name: prod.name,
         shopId: prod.shopId,
         vendorId: prod.vendorId,
+        brand: prod.brandId,
         image: prod.primary_image,
         shortDescription: prod.shortDescription,
         vendorSellingPrice: prod.vendorSellingPrice,
@@ -71,6 +111,7 @@ exports.getsubCategoryProductList = catchAsync(async (req, res, next) => {
         unitOfMeasurement: prod.unitOfMeasurement,
         isInCart: cartMap.has(productKey),
         cartQty: cartMap.get(productKey) || 0,
+        isInWishlist: wishlistSet.has(prod._id.toString()),
         variants: prod.variants.map((variant) => {
           const variantKey = `${prod._id}_${variant._id}`;
 

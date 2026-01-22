@@ -2,33 +2,48 @@ const Explore = require("../../../models/explore");
 const exploreSection = require("../../../models/exploreSection");
 const { calculateOffer } = require("../../../utils/calculateOffer");
 const catchAsync = require("../../../utils/catchAsync");
+const UserServices = require("../../../services/user");
+const VendorServices = require("../../../services/vendor")
 
 const formatProduct = (prod) => ({
     _id: prod._id,
     name: prod.name,
-    shopId: prod.shopId._id,
     vendorId: prod.vendorId,
-    shopName: prod.shopId?.name || "",
     primary_image: prod.primary_image,
     shortDescription: prod.shortDescription,
     price: prod.vendorSellingPrice,
     mrp: prod.mrp,
     offer: calculateOffer(prod.mrp, prod.vendorSellingPrice),
     distance: "3",
-    time: "5"
+    time: "10"
 });
 
 // Get Single
 exports.getExplore = catchAsync(async (req, res) => {
     const exploreId = req.params.exploreId
-    const explore = await Explore.findById(exploreId).select("name bannerImg couponCode");
-    if (!explore) throw new AppError("Explore not found", 404);
+    const userId = req.user._id;
+    const user = await UserServices.getUserById(userId);
+    if (!user) return res.status(400).json({ success: false, message: 'Invalid userId' });
+
+    if (!user.pincode) {
+        return res.status(400).json({
+            success: false,
+            message: 'User pincode is required'
+        });
+    }
+
+    const [explore, vendor] = await Promise.all([Explore.findById(exploreId).select("name bannerImg couponCode"), VendorServices.getVendor({ status: true })])
+
+    if (!explore) throw new AppError("Invalid exploreId", 400);
+    const vendorId = vendor?._id;
 
     const exploreSectionsRaw = await exploreSection.find({ exploreId: exploreId }).select("name products").populate({ path: "products" });
+
     if (!exploreSectionsRaw || exploreSectionsRaw.length === 0) {
-        return res.status(404).json({
-            status: false,
-            message: "No sections found for this explore"
+        return res.status(200).json({
+            status: true,
+            message: "No sections found for this explore",
+            exploreSections: {}
         });
     }
 
@@ -36,7 +51,7 @@ exports.getExplore = catchAsync(async (req, res) => {
         return {
             _id: section._id,
             name: section.name,
-            products: section.products.slice(0,5).map(product => formatProduct(product))
+            products: section.products.slice(0, 5).filter(product => product.vendorId.toString() === vendorId.toString()).map(product => formatProduct(product))
         }
     });
 

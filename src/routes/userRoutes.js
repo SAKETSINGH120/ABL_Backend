@@ -71,6 +71,14 @@ const { getSearch } = require('../controllers/user/homeController/getSearch');
 const { walletHistoryOfUser } = require('../controllers/user/walletController/walletHistoryOfUser');
 const { getAvailableCoupons } = require('../controllers/user/newCartController/getAvailableCoupons');
 const { getCmsForWeb } = require('../controllers/user/cmsController/getCmsForWeb');
+const createRazorpayOrderForWallet = require('../controllers/user/paymentController/createRazorpayOrderForwallet');
+const verifyPaymentForWallet = require('../controllers/user/paymentController/verifyPaymentForWallet');
+const { getAllBrands } = require('../controllers/user/brand/getBrands');
+const { addToWishlist } = require('../controllers/user/wishlistController/addToWishlist');
+const { removeFromWishlist } = require('../controllers/user/wishlistController/removeFromWishlist');
+const { getWishlist } = require('../controllers/user/wishlistController/getWishlist');
+const { clearWishlist } = require('../controllers/user/wishlistController/clearWishlist');
+const { getProducts } = require('../controllers/user/productController');
 const router = express.Router();
 
 // router.get("/test", (req,res)=>{
@@ -92,6 +100,7 @@ router.post('/profile/service', userAuthenticate, changeUserService);
 // Home Food Page
 //------------------------------------------------
 router.get('/home', userAuthenticate, getHomeData);
+router.get('/products', userAuthenticate, getProducts);
 router.get('/shop/list', userAuthenticate, getShopList);
 router.get('/homegrocery', userAuthenticate, getHomeDataGrocery);
 router.get('/category/list', userAuthenticate, getAllCategory);
@@ -111,6 +120,11 @@ router.get('/specialGrocery', userAuthenticate, getSpecialGroceryProduct);
 // search
 //------------------------------------------------
 router.get('/search', userAuthenticate, getSearch);
+
+//------------------------------------------------
+// Brands
+//------------------------------------------------
+router.get('/brands', userAuthenticate, getAllBrands);
 
 //------------------------------------------------
 // banner
@@ -193,6 +207,11 @@ router.post('/create-razorpay-order', userAuthenticate, createRazorpayOrder);
 router.post('/razorpay-webhook', express.raw({ type: 'application/json' }), verifyRazorpayWebhook);
 router.post(`/verify-payment`, userAuthenticate, verifyPayment);
 
+//for wallet
+router.post('/create-wallet-razorpay-order', userAuthenticate, createRazorpayOrderForWallet);
+router.post('/razorpay-webhook', express.raw({ type: 'application/json' }), verifyRazorpayWebhook);
+router.post(`/verify-wallet-payment`, userAuthenticate, verifyPaymentForWallet);
+
 //------------------------------------------------
 // wallet
 //------------------------------------------------
@@ -221,6 +240,14 @@ router.get('/invoice/:orderId', newOrderinvoicePDF);
 router.post('/shop/rating', userAuthenticate, shopRatingCreate);
 router.post('/driver/rating', userAuthenticate, driverRatingCreate);
 router.post('/product/rating', userAuthenticate, productRatingCreate);
+
+//------------------------------------------------
+// wishlist
+//------------------------------------------------
+router.post('/wishlist/add', userAuthenticate, addToWishlist);
+router.delete('/wishlist/remove/:productId', userAuthenticate, removeFromWishlist);
+router.get('/wishlist', userAuthenticate, getWishlist);
+router.delete('/wishlist/clear', userAuthenticate, clearWishlist);
 
 //------------------------------------------------
 // delete user

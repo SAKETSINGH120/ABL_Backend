@@ -3,7 +3,7 @@ const catchAsync = require("../../../utils/catchAsync");
 
 exports.getAllProductExplore = catchAsync(async (req, res) => {
 
-    const allProductRaw = await VendorProduct.find({ isDeleted: false }).select("name primary_image").sort({ createdAt: -1 }).populate("vendorId", "name").populate("shopId", "name").sort({ createdAt: -1 })
+    const allProductRaw = await VendorProduct.find({ isDeleted: false }).select("name primary_image").sort({ createdAt: -1 }).populate("vendorId", "name").sort({ createdAt: -1 })
 
     const allProduct = allProductRaw.map(product => {
         return {
@@ -11,7 +11,7 @@ exports.getAllProductExplore = catchAsync(async (req, res) => {
             name: product.name,
             primary_image: product.primary_image,
             vendorName: product.vendorId ? product.vendorId.name : "N/A",
-            shopName: product.shopId ? product.shopId.name : "N/A"
+            shopName: ""
         }
     })
 
@@ -20,5 +20,4 @@ exports.getAllProductExplore = catchAsync(async (req, res) => {
         count: allProduct.length,
         data: allProduct
     })
-
 })
