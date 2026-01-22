@@ -79,7 +79,7 @@ router.get("/home", driverAuthenticate, getHomeData)
 //------------------------------------------------
 router.get("/orders", driverAuthenticate, orderList)
 router.get("/order/:orderId", driverAuthenticate, orderDetails)
-router.patch("/order/:orderId", driverAuthenticate, orderStatusChange)
+router.patch("/order/:orderId", orderStatusChange)
 
 //------------------------------------------------
 // wallet

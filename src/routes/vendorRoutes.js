@@ -52,7 +52,7 @@ const { getAllShopWallet } = require('../controllers/vendor/walletController/get
 const { createWalletRequest } = require('../controllers/vendor/walletController/createWalletRequest');
 const { getWalletRequest } = require('../controllers/vendor/walletController/getWalletRequest');
 const { getVendorWalletHistory } = require('../controllers/vendor/walletController/getVendorWalletHistory');
-const { getShopWalletHistory } = require('../controllers/vendor/walletController/getShopWalletHistory');
+const { getShopWalletHistory, getOrderWiseWalletHistory } = require('../controllers/vendor/walletController/getShopWalletHistory');
 const { changeOrderStatus } = require('../controllers/vendor/orderController/changeOrderStatus');
 const { getAllCoupons } = require('../controllers/vendor/couponController/getAllCoupon');
 const { updateCoupon } = require('../controllers/vendor/couponController/updateCoupon');
@@ -289,8 +289,9 @@ router.post(
 //------------------------------------------------
 
 router.get('/wallet', vendorAuthenticate, getVendorWallet);
-router.get('/shops/wallets', vendorAuthenticate, getAllShopWallet);
-router.get('/shop/:shopId/wallet/history', vendorAuthenticate, getShopWalletHistory);
+// router.get('/shops/wallets', vendorAuthenticate, getAllShopWallet);
+// router.get('/shop/:shopId/wallet/history', vendorAuthenticate, getShopWalletHistory);
+router.get('/order/wallet/history', vendorAuthenticate, getOrderWiseWalletHistory);
 router.get('/wallet/history', vendorAuthenticate, getVendorWalletHistory);
 // router.post("/admin/vendor/:vendorId/wallet/settle", adminAuthenticate, settleVendorWallet); this is for admin
 // router.get("/wallet/settlements", vendorAuthenticate, getVendorWalletSettlements);
