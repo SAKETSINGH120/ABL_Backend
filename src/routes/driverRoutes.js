@@ -23,7 +23,6 @@ const { requestPasswordReset } = require("../controllers/driver/forgotPassword/r
 const { resetPasswordWithOtp } = require("../controllers/driver/forgotPassword/resetPasswordWithOtp");
 const { getCms } = require("../controllers/driver/cmsController/getCms");
 
-
 //------------------------------------------------
 // auth
 //------------------------------------------------
@@ -100,8 +99,5 @@ router.get("/cms", getCms);
 router.get("/delete-driver", showDeletePage);
 router.post("/find-driver", findDriver);
 router.post("/delete-driver/:id", deleteDriver);
-
-
-
 
 module.exports = router;
