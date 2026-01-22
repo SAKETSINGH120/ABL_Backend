@@ -2,7 +2,8 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
-const driverSchema = new Schema({
+const driverSchema = new Schema(
+  {
     // --- Driver basic details ---
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true },
@@ -17,10 +18,10 @@ const driverSchema = new Schema({
     otp: { code: String, expiresAt: Date },
     // --- Vehicle basic details ---
     vehicle: {
-        type: { type: String, required: true, trim: true },
-        model: { type: String, required: true, trim: true },
-        registrationNumber: { type: String, required: true, unique: true, trim: true },
-        insuranceNumber: { type: String, trim: true }
+      type: { type: String, required: true, trim: true },
+      model: { type: String, required: true, trim: true },
+      registrationNumber: { type: String, required: true, unique: true, trim: true },
+      insuranceNumber: { type: String, trim: true }
     },
     // --- Driver documents ---
     vehicleRcImage: { type: String, default: '' },
@@ -32,7 +33,7 @@ const driverSchema = new Schema({
     wallet_balance: { type: Number, default: 0 },
     cashCollection: { type: Number, default: 0 },
     payoutType: { type: String, enum: ['daily', 'weekly', 'monthly'], default: 'weekly' },
-    personWithDisability:{ type:String, enum: ['0', '1'], default: '0'},
+    personWithDisability: { type: String, enum: ['0', '1'], default: '0' },
 
     // BANK DETAILS (now handled in Vendor model directly)
     ifsc: { type: String, default: '' },
@@ -41,7 +42,6 @@ const driverSchema = new Schema({
     accountNo: { type: String, default: '' },
     benificiaryName: { type: String, default: '' },
     passbook: { type: String, default: '' },
-
 
     isVerified: { type: Boolean, default: false },
     isBlocked: { type: Boolean, default: false },
@@ -52,20 +52,23 @@ const driverSchema = new Schema({
     currentOrderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order', default: null },
     // Add inside driverSchema (anywhere before closing the schema)
     location: {
-        type: {
-            type: String,
-            enum: ['Point'],
-            default: 'Point'
-        },
-        coordinates: {
-            type: [Number], // [longitude, latitude]
-            default: [0, 0]
-        }
+      type: {
+        type: String,
+        enum: ['Point'],
+        default: 'Point'
+      },
+      coordinates: {
+        type: [Number], // [longitude, latitude]
+        default: [0, 0]
+      }
     },
+    pincode: { type: Number, required: true },
     rating: { type: String, default: '0' }
-}, {
+  },
+  {
     timestamps: true
-});
+  }
+);
 
 driverSchema.index({ location: '2dsphere' });
 const Driver = mongoose.model('Driver', driverSchema);
