@@ -54,6 +54,11 @@ const orders = await newOrder.find(filter)
         }
     ]);*/
 
+        if (!filter.orderStatus) {
+            filter.orderStatus = { $ne: "pending" }
+            filter.paymentStatus = "paid"
+        }
+
         const [orders, allCounts] = await Promise.all([newOrder.find(filter)
             .populate("productData.productId", "name primary_image")
             .populate("addressId")
@@ -82,6 +87,15 @@ const orders = await newOrder.find(filter)
             (statusCountMap.cancelledByAdmin || 0) +
             (statusCountMap.cancelled || 0);
 
+        const acceptedOrdersCount = statusCountMap.accepted || 0;
+        const startPackingOrdersCount = (statusCountMap.start_packing || 0) + (statusCountMap.dealy || 0);
+        const readyOrdersCount = statusCountMap.ready || 0;
+        const pickedupOrdersCount = statusCountMap["picked up"] || 0;
+        const runningOrdersCount = statusCountMap.running || 0;
+        const deliveredOrdersCount = statusCountMap.delivered || 0;
+        const cancelledOrdersCount = totalCancelled;
+        const allOrdersCount = acceptedOrdersCount + startPackingOrdersCount + readyOrdersCount + pickedupOrdersCount + runningOrdersCount + deliveredOrdersCount + cancelledOrdersCount;
+
         const counts = {
             new: statusCountMap.pending || 0,
             accepted: statusCountMap.accepted || 0,
@@ -91,7 +105,7 @@ const orders = await newOrder.find(filter)
             running: statusCountMap.running || 0,
             delivered: statusCountMap.delivered || 0,
             cancelled: totalCancelled,
-            all: allCounts.reduce((acc, cur) => acc + cur.count, 0)
+            all: allOrdersCount
         };
 
         return res.status(200).json({
