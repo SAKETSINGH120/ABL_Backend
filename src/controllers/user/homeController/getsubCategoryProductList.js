@@ -85,6 +85,7 @@ exports.getsubCategoryProductList = catchAsync(async (req, res, next) => {
       });
     }
 
+    // this for wishlisted product tracking according to user
     const wishlistSet = new Set();
 
     if (wishlist) {

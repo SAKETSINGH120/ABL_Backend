@@ -228,7 +228,7 @@ router.patch(
   '/explore/:id',
   fileUploader('banners', [
     { name: 'icon', maxCount: 1 },
-    { name: 'banner', maxCount: 1 }
+  { name: 'banner', maxCount: 1 }
   ]),
   updateExplore
 );
@@ -361,6 +361,7 @@ router.get('/payout', adminAuthenticate, payoutList);
 
 // router.post("/wallet/request", adminAuthenticate, createWalletRequest)
 router.get('/wallet/request', adminAuthenticate, getWalletRequest);
+// this api for approve the payment request
 router.post('/wallet/request/status/:requestId', adminAuthenticate, changeStatusWalletRequest);
 router.post('/wallet/request/settle/:requestId', adminAuthenticate, settleRequest);
 // vendor wallet

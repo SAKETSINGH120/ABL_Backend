@@ -10,9 +10,15 @@ const catchAsync = require('../../../utils/catchAsync');
 
 exports.orderStatusChange = catchAsync(async (req, res) => {
   try {
-    const driverId = '697010e6666d3550330bf0f8'; // req.driver._id;
+    const driverId = req.driver._id;
     const { orderId } = req.params;
     const status = req.body.status;
+
+    let deliveryProofImage;
+    if (req.files && req.files.deliveryProofImage) {
+      const url = `${req.files.deliveryProofImage[0].destination}/${req.files.deliveryProofImage[0].filename}`;
+      deliveryProofImage = url;
+    }
 
     const order = await newOrder.findById(orderId);
     const driver = await Driver.findById(driverId);
@@ -76,7 +82,6 @@ exports.orderStatusChange = catchAsync(async (req, res) => {
     });
 
     // Update vendor wallet
-
     vendor.wallet_balance += Math.ceil(vendorAmount);
     await vendor.save();
 
@@ -106,6 +111,9 @@ exports.orderStatusChange = catchAsync(async (req, res) => {
     });
 
     order.orderStatus = 'delivered';
+    if (deliveryProofImage) {
+      order.deliveryProofImage = deliveryProofImage;
+    }
     await order.save();
 
     res.status(200).json({

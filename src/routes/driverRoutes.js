@@ -1,4 +1,4 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
 const fileUploader = require("../middleware/fileUploader");
 const { loginDriver } = require("../controllers/driver/auth/loginDriver");
@@ -29,16 +29,16 @@ const { verifyOtp } = require("../controllers/driver/auth/verifyOtp");
 //------------------------------------------------
 // Register Driver
 router.post("/register", fileUploader("driver", [
-    { name: "image", maxCount: 1 },
-    { name: "profileImage", maxCount: 1 },
-    { name: "vehicleRcFrontImage", maxCount: 1 },
-    { name: "vehicleRcBackImage", maxCount: 1 }, { name: "idProofImage", maxCount: 1 },
-    { name: "insuranceImage", maxCount: 1 },
-    { name: "passbook", maxCount: 1 },
-    { name: "licenseImage", maxCount: 1 },
-    { name: "adharImage", maxCount: 1 }
+  { name: "image", maxCount: 1 },
+  { name: "profileImage", maxCount: 1 },
+  { name: "vehicleRcFrontImage", maxCount: 1 },
+  { name: "vehicleRcBackImage", maxCount: 1 }, { name: "idProofImage", maxCount: 1 },
+  { name: "insuranceImage", maxCount: 1 },
+  { name: "passbook", maxCount: 1 },
+  { name: "licenseImage", maxCount: 1 },
+  { name: "adharImage", maxCount: 1 }
 ]),
-    registerDriver
+  registerDriver
 );
 
 // Login Driver
@@ -47,21 +47,21 @@ router.post("/verifyOtp", verifyOtp);
 
 // Update Profile
 router.patch("/profile", driverAuthenticate, fileUploader("driver", [
-    { name: "image", maxCount: 1 },
-    { name: "vehicleRcFrontImage", maxCount: 1 },
-    { name: "vehicleRcBackImage", maxCount: 1 }, { name: "idProofImage", maxCount: 1 },
-    { name: "insuranceImage", maxCount: 1 },
-    { name: "passbook", maxCount: 1 },
-    { name: "licenseImage", maxCount: 1 },
-    { name: "adharImage", maxCount: 1 },
-    { name: "profileImage", maxCount: 1 },
+  { name: "image", maxCount: 1 },
+  { name: "vehicleRcFrontImage", maxCount: 1 },
+  { name: "vehicleRcBackImage", maxCount: 1 }, { name: "idProofImage", maxCount: 1 },
+  { name: "insuranceImage", maxCount: 1 },
+  { name: "passbook", maxCount: 1 },
+  { name: "licenseImage", maxCount: 1 },
+  { name: "adharImage", maxCount: 1 },
+  { name: "profileImage", maxCount: 1 },
 ]),
-    updateProfile
+  updateProfile
 );
-router.get("/profile", driverAuthenticate, getProfile)
+router.get('/profile', driverAuthenticate, getProfile);
 
 // Activate/Deactivate Driver
-router.patch("/status/:driverId", toggleStatus);
+router.patch('/status/:driverId', toggleStatus);
 // router.patch("/block/status/:driverId", toggleBlockStatus);
 router.patch('/update-location', driverAuthenticate, updateDriverLocation);
 
@@ -71,37 +71,35 @@ router.patch('/update-location', driverAuthenticate, updateDriverLocation);
 router.post('/forgot-password', requestPasswordReset);
 router.post('/reset-password', resetPasswordWithOtp);
 
+//------------------------------------------------
+// order
+//------------------------------------------------
+router.get('/home', driverAuthenticate, getHomeData);
 
 //------------------------------------------------
 // order
 //------------------------------------------------
-router.get("/home", driverAuthenticate, getHomeData)
-
-
-//------------------------------------------------
-// order
-//------------------------------------------------
-router.get("/orders", driverAuthenticate, orderList)
-router.get("/order/:orderId", driverAuthenticate, orderDetails)
-router.patch("/order/:orderId", orderStatusChange)
+router.get('/orders', driverAuthenticate, orderList);
+router.get('/order/:orderId', driverAuthenticate, orderDetails);
+router.patch('/order/:orderId', fileUploader('delivery', [{ name: 'deliveryProofImage', maxCount: 1 }]), orderStatusChange);
 
 //------------------------------------------------
 // wallet
 //------------------------------------------------
-router.get("/wallet", driverAuthenticate, getDriverWallet)
-router.post("/wallet/request", driverAuthenticate, createWalletRequest)
-router.get("/wallet/request", driverAuthenticate, getWalletRequest)
+router.get('/wallet', driverAuthenticate, getDriverWallet);
+router.post('/wallet/request', driverAuthenticate, createWalletRequest);
+router.get('/wallet/request', driverAuthenticate, getWalletRequest);
 
 //------------------------------------------------
 // cms
 //------------------------------------------------
-router.get("/cms", getCms);
+router.get('/cms', getCms);
 
 //------------------------------------------------
 // delete driver
 //------------------------------------------------
-router.get("/delete-driver", showDeletePage);
-router.post("/find-driver", findDriver);
-router.post("/delete-driver/:id", deleteDriver);
+router.get('/delete-driver', showDeletePage);
+router.post('/find-driver', findDriver);
+router.post('/delete-driver/:id', deleteDriver);
 
 module.exports = router;
