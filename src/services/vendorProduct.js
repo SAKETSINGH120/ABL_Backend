@@ -9,3 +9,8 @@ exports.getProductById = async (id) => {
     const product = await VendorProduct.findById(id);
     return product;
 };
+
+exports.countProducts = async (query) => {
+    const count = await VendorProduct.countDocuments(query);
+    return count;
+};
