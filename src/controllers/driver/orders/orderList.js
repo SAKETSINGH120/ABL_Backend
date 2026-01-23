@@ -52,6 +52,8 @@ exports.orderList = catchAsync(async (req, res, next) => {
       long: req.driver.location.coordinates[0]
     };
 
+    console.log('diverLocation', driverLocation);
+
     const orderList = await Promise.all(
       orderListRaw.map(async (ord) => {
         const vendorLocation = {
@@ -64,16 +66,15 @@ exports.orderList = catchAsync(async (req, res, next) => {
           long: ord.addressId.location.coordinates[0]
         };
 
-        const driverToShop = await getDistanceAndTime(driverLocation, vendorLocation, googleMapApiKey);
-        const shopToUser = await getDistanceAndTime(vendorLocation, userLocation, googleMapApiKey);
-        console.log('🚀 ~ shopToUser:', shopToUser, driverToShop);
+        const driverToVendor = await getDistanceAndTime(driverLocation, vendorLocation, googleMapApiKey);
+        const vendorToUser = await getDistanceAndTime(vendorLocation, userLocation, googleMapApiKey);
 
         const parseKm = (distanceText) => {
           if (!distanceText || distanceText === 'N/A') return 0;
           return parseFloat(distanceText.replace(',', '').replace(' km', ''));
         };
 
-        const totalKm = parseKm(driverToShop.distance) + parseKm(shopToUser.distance);
+        const totalKm = parseKm(driverToVendor.distance) + parseKm(vendorToUser.distance);
 
         return {
           _id: ord._id,

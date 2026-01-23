@@ -22,6 +22,8 @@ const { getHomeData } = require('../controllers/driver/home/getHomeData');
 const { requestPasswordReset } = require('../controllers/driver/forgotPassword/requestPasswordReset');
 const { resetPasswordWithOtp } = require('../controllers/driver/forgotPassword/resetPasswordWithOtp');
 const { getCms } = require('../controllers/driver/cmsController/getCms');
+const { submitQuery } = require('../controllers/driver/queryController/submitQuery');
+const { getQueries } = require('../controllers/driver/queryController/getQueries');
 
 //------------------------------------------------
 // auth
@@ -92,6 +94,12 @@ router.get('/wallet/request', driverAuthenticate, getWalletRequest);
 // cms
 //------------------------------------------------
 router.get('/cms', getCms);
+
+//------------------------------------------------
+// query
+//------------------------------------------------
+router.post('/query', driverAuthenticate, submitQuery);
+router.get('/queries', driverAuthenticate, getQueries);
 
 //------------------------------------------------
 // delete driver

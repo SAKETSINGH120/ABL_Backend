@@ -58,6 +58,8 @@ const { getAllCoupons } = require('../controllers/vendor/couponController/getAll
 const { updateCoupon } = require('../controllers/vendor/couponController/updateCoupon');
 const { deleteCoupon } = require('../controllers/vendor/couponController/deleteCoupon');
 const { statusNightCafe } = require('../controllers/vendor/shopController/statusNightCafe');
+const { submitQuery } = require('../controllers/vendor/queryController/submitQuery');
+const { getQueries } = require('../controllers/vendor/queryController/getQueries');
 const { updateCopyProductRecommended } = require('../controllers/vendor/copyProductController/updateCopyProductRecommended');
 const { createVendorProduct } = require('../controllers/vendor/vendorProductController/createVendorProduct');
 const { getToppins } = require('../controllers/vendor/toppinsController/getToppins');
@@ -318,6 +320,12 @@ router.get('/order/details/:orderId', vendorAuthenticate, orderDetails);
 // invoice
 //------------------------------------------------
 router.get('/invoice/:orderId', newOrderinvoicePDF);
+
+//------------------------------------------------
+// query
+//------------------------------------------------
+router.post('/query', vendorAuthenticate, submitQuery);
+router.get('/queries', vendorAuthenticate, getQueries);
 
 //------------------------------------------------
 // delete vendor
