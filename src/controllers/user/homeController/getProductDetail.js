@@ -7,6 +7,7 @@ const VendorProduct = require("../../../models/vendorProduct");
 const { calculateOffer } = require("../../../utils/calculateOffer");
 const catchAsync = require("../../../utils/catchAsync");
 const newCart = require("../../../models/newCart");
+const WishlistServices = require("../../../services/wishlist");
 
 exports.getProductDetail = catchAsync(async (req, res, next) => {
     try {
@@ -17,7 +18,18 @@ exports.getProductDetail = catchAsync(async (req, res, next) => {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
 
-        const activeCart = await newCart.findOne({ userId: userId, status: 'active' });
+        const [activeCart, wishlist] = await Promise.all([
+            newCart.findOne({ userId: userId, status: 'active' }),
+            WishlistServices.getWishlistByUserId(userId)
+        ])
+
+        const wishlistSet = new Set();
+
+        if (wishlist) {
+            wishlist.items.forEach((item) => {
+                wishlistSet.add(item.productId.toString());
+            });
+        }
 
         const cartMap = new Map();
 
@@ -60,6 +72,7 @@ exports.getProductDetail = catchAsync(async (req, res, next) => {
             mrp: product.mrp,
             unitOfMeasurement: product.unitOfMeasurement,
             isInCart: cartMap.has(productKey),
+            isInWishlist: wishlistSet.has(product._id.toString()),
             cartQty: cartMap.get(productKey) || 0,
             variants: product.variants.map((variant) => {
                 const variantKey = `${product._id}_${variant._id}`;
