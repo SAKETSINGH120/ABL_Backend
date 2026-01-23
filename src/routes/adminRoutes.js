@@ -98,6 +98,9 @@ const { getTopShops, addTopShop, updateTopShop, deleteTopShop } = require('../co
 const { updateVendorDetails } = require('../controllers/admin/vendorController/updateVendorDetails');
 const { payoutList } = require('../controllers/admin/vendorController/payoutList');
 const { walletHistoryOfVendor } = require('../controllers/admin/vendorController/walletHistoryOfVendor');
+const { getAllQueries } = require('../controllers/admin/queryController/getAllQueries');
+const { updateQueryStatus } = require('../controllers/admin/queryController/updateQueryStatus');
+const { getQueryDetails } = require('../controllers/admin/queryController/getQueryDetails');
 const { walletHistoryOfDriver } = require('../controllers/admin/vendorController/walletHistoryOfDriver');
 const { blockUser } = require('../controllers/admin/userController/blockUser');
 const { getUserDetails } = require('../controllers/admin/userController/getUserDetails');
@@ -228,7 +231,7 @@ router.patch(
   '/explore/:id',
   fileUploader('banners', [
     { name: 'icon', maxCount: 1 },
-  { name: 'banner', maxCount: 1 }
+    { name: 'banner', maxCount: 1 }
   ]),
   updateExplore
 );
@@ -408,6 +411,13 @@ router.delete('/deleteadmin/:id', adminAuthenticate, deleteAdmin);
 router.get('/cms', getCms);
 router.post('/cms', adminAuthenticate, addCms);
 router.patch('/cms/:id', adminAuthenticate, updateCms);
+
+//------------------------------------------------
+// Query Management
+//------------------------------------------------
+router.get('/queries', adminAuthenticate, getAllQueries);
+router.get('/query/:queryId', adminAuthenticate, getQueryDetails);
+router.patch('/query/:queryId', adminAuthenticate, updateQueryStatus);
 
 //------------------------------------------------
 // Variant Type

@@ -1,28 +1,30 @@
 const express = require('express');
 const router = express.Router();
-const fileUploader = require("../middleware/fileUploader");
-const { loginDriver } = require("../controllers/driver/auth/loginDriver");
-const { registerDriver } = require("../controllers/driver/auth/registerDriver");
-const { toggleStatus } = require("../controllers/driver/auth/toggleStatus");
-const { updateProfile } = require("../controllers/driver/auth/updateProfile");
-const { driverAuthenticate } = require("../controllers/driver/auth/driverAuth");
-const { orderList } = require("../controllers/driver/orders/orderList");
-const { orderDetails } = require("../controllers/driver/orders/orderDetails");
-const { getProfile } = require("../controllers/driver/auth/getProfile");
-const { orderStatusChange } = require("../controllers/driver/orders/orderStatusChange");
-const { toggleBlockStatus } = require("../controllers/driver/auth/toggleBlockStatus");
-const updateDriverLocation = require("../controllers/driver/auth/updateLocation");
-const { getDriverWallet } = require("../controllers/driver/wallet/getDriverWallet");
-const { createWalletRequest } = require("../controllers/driver/wallet/createWalletRequest");
-const { getWalletRequest } = require("../controllers/driver/wallet/getWalletRequest");
-const { showDeletePage } = require("../controllers/driver/auth/showDeletePage");
-const { findDriver } = require("../controllers/driver/auth/findDriver");
-const { deleteDriver } = require("../controllers/driver/auth/deleteDriver");
-const { getHomeData } = require("../controllers/driver/home/getHomeData");
-const { requestPasswordReset } = require("../controllers/driver/forgotPassword/requestPasswordReset");
-const { resetPasswordWithOtp } = require("../controllers/driver/forgotPassword/resetPasswordWithOtp");
-const { getCms } = require("../controllers/driver/cmsController/getCms");
-const { verifyOtp } = require("../controllers/driver/auth/verifyOtp");
+const fileUploader = require('../middleware/fileUploader');
+const { loginDriver } = require('../controllers/driver/auth/loginDriver');
+const { registerDriver } = require('../controllers/driver/auth/registerDriver');
+const { toggleStatus } = require('../controllers/driver/auth/toggleStatus');
+const { updateProfile } = require('../controllers/driver/auth/updateProfile');
+const { driverAuthenticate } = require('../controllers/driver/auth/driverAuth');
+const { orderList } = require('../controllers/driver/orders/orderList');
+const { orderDetails } = require('../controllers/driver/orders/orderDetails');
+const { getProfile } = require('../controllers/driver/auth/getProfile');
+const { orderStatusChange } = require('../controllers/driver/orders/orderStatusChange');
+const { toggleBlockStatus } = require('../controllers/driver/auth/toggleBlockStatus');
+const updateDriverLocation = require('../controllers/driver/auth/updateLocation');
+const { getDriverWallet } = require('../controllers/driver/wallet/getDriverWallet');
+const { createWalletRequest } = require('../controllers/driver/wallet/createWalletRequest');
+const { getWalletRequest } = require('../controllers/driver/wallet/getWalletRequest');
+const { showDeletePage } = require('../controllers/driver/auth/showDeletePage');
+const { findDriver } = require('../controllers/driver/auth/findDriver');
+const { deleteDriver } = require('../controllers/driver/auth/deleteDriver');
+const { getHomeData } = require('../controllers/driver/home/getHomeData');
+const { requestPasswordReset } = require('../controllers/driver/forgotPassword/requestPasswordReset');
+const { resetPasswordWithOtp } = require('../controllers/driver/forgotPassword/resetPasswordWithOtp');
+const { getCms } = require('../controllers/driver/cmsController/getCms');
+const { submitQuery } = require('../controllers/driver/queryController/submitQuery');
+const { getQueries } = require('../controllers/driver/queryController/getQueries');
+const { verifyOtp } = require('../controllers/driver/auth/verifyOtp');
 
 //------------------------------------------------
 // auth
@@ -94,6 +96,12 @@ router.get('/wallet/request', driverAuthenticate, getWalletRequest);
 // cms
 //------------------------------------------------
 router.get('/cms', getCms);
+
+//------------------------------------------------
+// query
+//------------------------------------------------
+router.post('/query', driverAuthenticate, submitQuery);
+router.get('/queries', driverAuthenticate, getQueries);
 
 //------------------------------------------------
 // delete driver

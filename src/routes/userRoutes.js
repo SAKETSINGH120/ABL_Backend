@@ -79,6 +79,8 @@ const { removeFromWishlist } = require('../controllers/user/wishlistController/r
 const { getWishlist } = require('../controllers/user/wishlistController/getWishlist');
 const { clearWishlist } = require('../controllers/user/wishlistController/clearWishlist');
 const { getProducts } = require('../controllers/user/productController');
+const { submitQuery } = require('../controllers/user/queryController/submitQuery');
+const { getQueries } = require('../controllers/user/queryController/getQueries');
 const router = express.Router();
 
 // router.get("/test", (req,res)=>{
@@ -281,5 +283,11 @@ router.post('/notification/send', async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to send notification', error: error.message });
   }
 });
+
+//------------------------------------------------
+// query
+//------------------------------------------------
+router.post('/query', userAuthenticate, submitQuery);
+router.get('/queries', userAuthenticate, getQueries);
 
 module.exports = router;
