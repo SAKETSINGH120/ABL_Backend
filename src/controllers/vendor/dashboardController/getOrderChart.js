@@ -29,16 +29,14 @@ exports.getOrderChart = catchAsync(async (req, res) => {
     }
   ]);
 
-  const orderData = {
-    name: 'Total Orders',
-    count: aggregation.length > 0 ? aggregation[0].count : 0,
-    amount: aggregation.length > 0 ? aggregation[0].amount : 0
-  };
-
   res.status(200).json({
     success: true,
     message: 'Order chart fetched',
-    data: orderData
+    data: [{
+      name: 'Total Orders',
+      count: aggregation.length > 0 ? aggregation[0].count : 0,
+      amount: aggregation.length > 0 ? aggregation[0].amount : 0
+    }]
   });
 });
 
