@@ -39,6 +39,7 @@ const getAllOrder = require('../controllers/admin/orderController/getAllOrder');
 const { createBanner } = require('../controllers/admin/bannerController/createBanner');
 const { getAllBanners } = require('../controllers/admin/bannerController/getBanner');
 const { getAllUsers } = require('../controllers/admin/userController/getUser');
+const { getUsersWithWalletRecharge } = require('../controllers/admin/userController/getUsersWithWalletRecharge');
 const { addCms } = require('../controllers/admin/cmsController/addCms');
 const { updateCms } = require('../controllers/admin/cmsController/updateCms');
 const { getCms } = require('../controllers/admin/cmsController/getCms');
@@ -315,6 +316,7 @@ router.patch('/driver/block/:driverId', adminAuthenticate, toggleBlockStatus);
 // user
 //------------------------------------------------
 router.get('/user/list', adminAuthenticate, getAllUsers);
+router.get('/user/wallet-recharge', adminAuthenticate, getUsersWithWalletRecharge);
 router.get('/user/:userId', adminAuthenticate, getUserDetails);
 router.patch('/user/:userId/block', adminAuthenticate, blockUser);
 

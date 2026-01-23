@@ -6,7 +6,7 @@ const walletHistorySchema = new Schema({
   vendorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vendor', required: false }, // vendor wise settlement
   driverId: { type: mongoose.Schema.Types.ObjectId, ref: 'Driver', required: false }, // driver wise settlement
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false }, // user wise settlement
-  action: { type: String, enum: ['credit', 'debit', 'commission', 'withdrawal', 'settlement'], required: true }, // e.g., 'credit', 'debit', 'commission', 'withdrawal', 'settlement'
+  action: { type: String, enum: ['credit', 'debit', 'commission', 'withdrawal', 'settlement', 'walletrecharge'], required: true }, // e.g., 'credit', 'debit', 'commission', 'withdrawal', 'settlement', 'walletrecharge'
   amount: { type: Number, required: true },
   balance_after_action: { type: Number, required: true },
   razorpayOrderId: { type: String, default: null },
