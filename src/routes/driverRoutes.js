@@ -22,6 +22,7 @@ const { getHomeData } = require("../controllers/driver/home/getHomeData");
 const { requestPasswordReset } = require("../controllers/driver/forgotPassword/requestPasswordReset");
 const { resetPasswordWithOtp } = require("../controllers/driver/forgotPassword/resetPasswordWithOtp");
 const { getCms } = require("../controllers/driver/cmsController/getCms");
+const { verifyOtp } = require("../controllers/driver/auth/verifyOtp");
 
 //------------------------------------------------
 // auth
@@ -29,7 +30,9 @@ const { getCms } = require("../controllers/driver/cmsController/getCms");
 // Register Driver
 router.post("/register", fileUploader("driver", [
     { name: "image", maxCount: 1 },
-    { name: "vehicleRcImage", maxCount: 1 },
+    { name: "profileImage", maxCount: 1 },
+    { name: "vehicleRcFrontImage", maxCount: 1 },
+    { name: "vehicleRcBackImage", maxCount: 1 }, { name: "idProofImage", maxCount: 1 },
     { name: "insuranceImage", maxCount: 1 },
     { name: "passbook", maxCount: 1 },
     { name: "licenseImage", maxCount: 1 },
@@ -40,14 +43,18 @@ router.post("/register", fileUploader("driver", [
 
 // Login Driver
 router.post("/login", loginDriver);
+router.post("/verifyOtp", verifyOtp);
 
 // Update Profile
 router.patch("/profile", driverAuthenticate, fileUploader("driver", [
     { name: "image", maxCount: 1 },
-    { name: "vehicleRcImage", maxCount: 1 },
+    { name: "vehicleRcFrontImage", maxCount: 1 },
+    { name: "vehicleRcBackImage", maxCount: 1 }, { name: "idProofImage", maxCount: 1 },
     { name: "insuranceImage", maxCount: 1 },
+    { name: "passbook", maxCount: 1 },
     { name: "licenseImage", maxCount: 1 },
-    { name: "adharImage", maxCount: 1 }
+    { name: "adharImage", maxCount: 1 },
+    { name: "profileImage", maxCount: 1 },
 ]),
     updateProfile
 );
@@ -58,14 +65,11 @@ router.patch("/status/:driverId", toggleStatus);
 // router.patch("/block/status/:driverId", toggleBlockStatus);
 router.patch('/update-location', driverAuthenticate, updateDriverLocation);
 
-
-
 //------------------------------------------------
 // Forgot Password
 //------------------------------------------------
 router.post('/forgot-password', requestPasswordReset);
 router.post('/reset-password', resetPasswordWithOtp);
-
 
 
 //------------------------------------------------

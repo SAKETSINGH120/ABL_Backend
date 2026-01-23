@@ -10,9 +10,11 @@ const { MART_SERVICE_ID } = require('../../../utils/constants');
 const checkServiceability = require('../../../utils/checkServiceability');
 const newCart = require('../../../models/newCart');
 const Vendor = require('../../../models/vendor');
+const WishlistServices = require('../../../services/wishlist');
 
-const formatProduct = (prod, cartMap) => {
+const formatProduct = (prod, cartMap, wishlistSet) => {
   const productKey = `${prod._id}_no-variant`;
+
 
   return ({
     _id: prod._id,
@@ -28,6 +30,7 @@ const formatProduct = (prod, cartMap) => {
     unitOfMeasurement: prod.unitOfMeasurement,
     isInCart: cartMap.has(productKey),
     cartQty: cartMap.get(productKey) || 0,
+    isInWishlist: wishlistSet.has(prod._id.toString()),
     variants: prod.variants.map((variant) => {
       const variantKey = `${prod._id}_${variant._id}`;
 
@@ -52,12 +55,20 @@ exports.getHomeDataGrocery = catchAsync(async (req, res) => {
   const productLimit = 10;
 
   // Fetch initial data in parallel
-  const [setting, user, userActiveCart] = await Promise.all([Setting.findById('680f1081aeb857eee4d456ab'), User.findById(userId), newCart.findOne({ userId: userId, status: 'active' })]);
+  const [setting, user, userActiveCart, wishlist] = await Promise.all([Setting.findById('680f1081aeb857eee4d456ab'), User.findById(userId), newCart.findOne({ userId: userId, status: 'active' }), WishlistServices.getWishlistByUserId(userId)]);
 
   if (!user.pincode) {
     return res.status(400).json({
       success: false,
       message: 'Pincode is required'
+    });
+  }
+
+  const wishlistSet = new Set();
+
+  if (wishlist) {
+    wishlist.items.forEach((item) => {
+      wishlistSet.add(item.productId.toString());
     });
   }
 
@@ -121,12 +132,12 @@ exports.getHomeDataGrocery = catchAsync(async (req, res) => {
   }
 
   for (let i = 0; i < productLimit; i++) {
-    if (featuredRaw[i]) featuredRaw[i] = formatProduct(featuredRaw[i], cartMap);
-    if (seasonalRaw[i]) seasonalRaw[i] = formatProduct(seasonalRaw[i], cartMap);
-    if (vegRaw[i]) vegRaw[i] = formatProduct(vegRaw[i], cartMap);
-    if (fruitRaw[i]) fruitRaw[i] = formatProduct(fruitRaw[i], cartMap);
-    if (dealOfTheDay[i]) dealOfTheDay[i] = formatProduct(dealOfTheDay[i], cartMap);
-    if (kitchenRaw[i]) kitchenRaw[i] = formatProduct(kitchenRaw[i], cartMap);
+    if (featuredRaw[i]) featuredRaw[i] = formatProduct(featuredRaw[i], cartMap, wishlistSet);
+    if (seasonalRaw[i]) seasonalRaw[i] = formatProduct(seasonalRaw[i], cartMap, wishlistSet);
+    if (vegRaw[i]) vegRaw[i] = formatProduct(vegRaw[i], cartMap, wishlistSet);
+    if (fruitRaw[i]) fruitRaw[i] = formatProduct(fruitRaw[i], cartMap, wishlistSet);
+    if (dealOfTheDay[i]) dealOfTheDay[i] = formatProduct(dealOfTheDay[i], cartMap, wishlistSet);
+    if (kitchenRaw[i]) kitchenRaw[i] = formatProduct(kitchenRaw[i], cartMap, wishlistSet);
   }
 
   res.status(200).json({
