@@ -6,6 +6,7 @@ const VendorProduct = require('../../../models/vendorProduct');
 const Setting = require('../../../models/settings');
 const { calculateOffer } = require('../../../utils/calculateOffer');
 const catchAsync = require('../../../utils/catchAsync');
+const getPagination = require('../../../utils/pagination');
 const { MART_SERVICE_ID } = require('../../../utils/constants');
 const checkServiceability = require('../../../utils/checkServiceability');
 const newCart = require('../../../models/newCart');
@@ -14,7 +15,7 @@ const Vendor = require('../../../models/vendor');
 const formatProduct = (prod, cartMap) => {
   const productKey = `${prod._id}_no-variant`;
 
-  return ({
+  return {
     _id: prod._id,
     name: prod.name,
     vendorId: prod.vendorId,
@@ -44,7 +45,7 @@ const formatProduct = (prod, cartMap) => {
         cartQty: cartMap.get(variantKey) || 0
       };
     })
-  })
+  };
 };
 
 exports.getHomeDataGrocery = catchAsync(async (req, res) => {
@@ -71,7 +72,6 @@ exports.getHomeDataGrocery = catchAsync(async (req, res) => {
   const vendor = await Vendor.findOne(vendorMatchQuery).select('_id');
   const vendorId = vendor?._id;
 
-
   // const apiKey = '';
   const userCoords = {
     lat: parseFloat(user.lat || 0),
@@ -87,27 +87,42 @@ exports.getHomeDataGrocery = catchAsync(async (req, res) => {
     queryCommon.vendorId = vendorId;
   }
 
+  const { skip, limit } = getPagination(1, 5);
+
   const [banners, middleBanner, categories, explore, featuredRaw, seasonalRaw, vegRaw, fruitRaw, dealOfTheDay, kitchenRaw] = await Promise.all([
     banner.find({ section: 'top' }).select('image').sort({ createdAt: -1 }),
     banner.find({ section: 'middle' }).select('image').sort({ createdAt: -1 }),
     Category.find({ cat_id: null }).select('name image').limit(8).sort({ createdAt: -1 }),
     Explore.find({}).select('name icon'),
     VendorProduct.find({ ...queryCommon, isFeatured: true, isDeleted: false })
-      .limit(productLimit).populate('variants.variantTypeId', 'name')
+      .skip(skip)
+      .limit(limit)
+      .populate('variants.variantTypeId', 'name')
       .populate('unitOfMeasurement', 'name -_id'),
     VendorProduct.find({ ...queryCommon, isSeasonal: true, isDeleted: false })
-      .limit(productLimit).populate('variants.variantTypeId', 'name')
+      .skip(skip)
+      .limit(limit)
+      .populate('variants.variantTypeId', 'name')
       .populate('unitOfMeasurement', 'name -_id'),
     VendorProduct.find({ ...queryCommon, isVegetableOfTheDay: true, isDeleted: false })
-      .limit(productLimit).populate('variants.variantTypeId', 'name')
+      .skip(skip)
+      .limit(limit)
+      .populate('variants.variantTypeId', 'name')
       .populate('unitOfMeasurement', 'name -_id'),
     VendorProduct.find({ ...queryCommon, isFruitOfTheDay: true, isDeleted: false })
-      .limit(productLimit).populate('variants.variantTypeId', 'name')
+      .skip(skip)
+      .limit(limit)
+      .populate('variants.variantTypeId', 'name')
       .populate('unitOfMeasurement', 'name -_id'),
     VendorProduct.find({ ...queryCommon, isDealOfTheDay: true, isDeleted: false })
-      .limit(productLimit).populate('variants.variantTypeId', 'name')
+      .skip(skip)
+      .limit(limit)
+      .populate('variants.variantTypeId', 'name')
       .populate('unitOfMeasurement', 'name -_id'),
-    VendorProduct.find({ ...queryCommon, categoryId: '6854ffe193a2cab5ddcba4cf' }).limit(productLimit).populate('variants.variantTypeId', 'name')
+    VendorProduct.find({ ...queryCommon, categoryId: '6854ffe193a2cab5ddcba4cf' })
+      .skip(skip)
+      .limit(limit)
+      .populate('variants.variantTypeId', 'name')
       .populate('unitOfMeasurement', 'name -_id')
   ]);
 
@@ -120,7 +135,7 @@ exports.getHomeDataGrocery = catchAsync(async (req, res) => {
     });
   }
 
-  for (let i = 0; i < productLimit; i++) {
+  for (let i = 0; i < 5; i++) {
     if (featuredRaw[i]) featuredRaw[i] = formatProduct(featuredRaw[i], cartMap);
     if (seasonalRaw[i]) seasonalRaw[i] = formatProduct(seasonalRaw[i], cartMap);
     if (vegRaw[i]) vegRaw[i] = formatProduct(vegRaw[i], cartMap);

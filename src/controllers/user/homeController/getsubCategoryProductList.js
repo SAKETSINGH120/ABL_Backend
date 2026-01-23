@@ -6,11 +6,13 @@ const Vendor = require('../../../models/vendor');
 const VendorProduct = require('../../../models/vendorProduct');
 const { calculateOffer } = require('../../../utils/calculateOffer');
 const catchAsync = require('../../../utils/catchAsync');
+const applyPagination = require('../../../utils/pagination');
 const mongoose = require('mongoose');
+const getPagination = require('../../../utils/pagination');
 
 exports.getsubCategoryProductList = catchAsync(async (req, res, next) => {
   try {
-    let { sortBy, price, brand } = req.query;
+    let { sortBy, price, brand, page } = req.query;
 
     const sortMap = { price_low: { vendorSellingPrice: 1 }, price_high: { vendorSellingPrice: -1 } };
     const filterMap = {
@@ -63,8 +65,10 @@ exports.getsubCategoryProductList = catchAsync(async (req, res, next) => {
       productQuery.vendorId = vendorId;
     }
 
+    const { skip, limit } = getPagination(page);
+
     const [productList, cartProducts, wishlist] = await Promise.all([
-      VendorProduct.find(productQuery).populate('variants.variantTypeId', 'name').populate('unitOfMeasurement', 'name -_id').populate('brandId', 'name').sort(sortQuery),
+      VendorProduct.find(productQuery).populate('variants.variantTypeId', 'name').populate('unitOfMeasurement', 'name -_id').populate('brandId', 'name').sort(sortQuery).skip(skip).limit(limit),
       newCart.findOne({ userId: userId, status: 'active' }),
       Wishlist.findOne({ userId })
     ]);
