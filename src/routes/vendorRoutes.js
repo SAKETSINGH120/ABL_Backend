@@ -68,6 +68,7 @@ const { getCounts } = require('../controllers/vendor/dashboardController/getCoun
 const { getSalesChart } = require('../controllers/vendor/dashboardController/getSalesChart');
 const { getOrderChart } = require('../controllers/vendor/dashboardController/getOrderChart');
 const { getEarningChart } = require('../controllers/vendor/dashboardController/getEarningChart');
+const { getRecentOrders } = require('../controllers/vendor/dashboardController/recentOrders');
 const { orderDetails } = require('../controllers/vendor/orderController/orderDetails');
 const newOrderinvoicePDF = require('../controllers/vendor/orderController/newOrderinvoice');
 const { showDeletePage } = require('../controllers/vendor/authController/showDeletePage');
@@ -126,6 +127,7 @@ router.get('/dashboard/counts', vendorAuthenticate, getCounts);
 router.get('/dashboard/sales', vendorAuthenticate, getSalesChart);
 router.get('/dashboard/orders', vendorAuthenticate, getOrderChart);
 router.get('/dashboard/earnings', vendorAuthenticate, getEarningChart);
+router.get('/dashboard/recent-orders', vendorAuthenticate, getRecentOrders);
 
 //------------------------------------------------
 // shop

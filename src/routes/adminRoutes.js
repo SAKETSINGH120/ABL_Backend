@@ -104,6 +104,7 @@ const { getUserDetails } = require('../controllers/admin/userController/getUserD
 const { getSalesChart } = require('../controllers/admin/dashboardController/getSalesChart');
 const { getEarningChart } = require('../controllers/admin/dashboardController/getEarningChart');
 const { getAverageOrderChart } = require('../controllers/admin/dashboardController/getAverageOrderChart');
+const { getRecentOrders } = require('../controllers/admin/dashboardController/recentOrder');
 const { updateShop } = require('../controllers/admin/shopController/updateShop');
 const { settleUserWallet } = require('../controllers/admin/walletController/settleUserWallet');
 const { walletHistoryOfUser } = require('../controllers/admin/vendorController/walletHistoryOfUser');
@@ -131,6 +132,7 @@ router.get('/dashboard', adminAuthenticate, getAllData);
 router.get('/dashboard/sales-chart', getSalesChart);
 router.get('/dashboard/earnings-chart', getEarningChart);
 router.get('/dashboard/average-order-chart', getAverageOrderChart);
+router.get('/dashboard/recent-orders', adminAuthenticate, getRecentOrders);
 
 //------------------------------------------------
 // change password
