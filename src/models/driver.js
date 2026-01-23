@@ -18,16 +18,19 @@ const driverSchema = new Schema(
     otp: { code: String, expiresAt: Date },
     // --- Vehicle basic details ---
     vehicle: {
-      type: { type: String, required: true, trim: true },
-      model: { type: String, required: true, trim: true },
-      registrationNumber: { type: String, required: true, unique: true, trim: true },
+      type: { type: String, trim: true },
+      model: { type: String, trim: true },
+      registrationNumber: { type: String, trim: true },
       insuranceNumber: { type: String, trim: true }
     },
     // --- Driver documents ---
-    vehicleRcImage: { type: String, default: '' },
+    vehicleRcFrontImage: { type: String, default: '' },
+    vehicleRcBackImage: { type: String, default: '' },
     insuranceImage: { type: String, default: '' },
     licenseImage: { type: String, default: '' },
     adharImage: { type: String, default: '' },
+    idProofImage: { type: String, default: '' },
+    profileImage: { type: String, default: '' },
     // --- commission and wallet details ---
     commission: { type: Number, default: 0 },
     wallet_balance: { type: Number, default: 0 },
@@ -46,8 +49,8 @@ const driverSchema = new Schema(
     isVerified: { type: Boolean, default: false },
     isBlocked: { type: Boolean, default: false },
     // for firebase cloud messaging
-    deviceId: { type: String, required: true },
-    deviceToken: { type: String, required: true },
+    deviceId: { type: String },
+    deviceToken: { type: String },
     // current order assigned to driver
     currentOrderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order', default: null },
     // Add inside driverSchema (anywhere before closing the schema)

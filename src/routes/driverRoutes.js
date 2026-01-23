@@ -24,38 +24,40 @@ const { resetPasswordWithOtp } = require('../controllers/driver/forgotPassword/r
 const { getCms } = require('../controllers/driver/cmsController/getCms');
 const { submitQuery } = require('../controllers/driver/queryController/submitQuery');
 const { getQueries } = require('../controllers/driver/queryController/getQueries');
+const { verifyOtp } = require('../controllers/driver/auth/verifyOtp');
 
 //------------------------------------------------
 // auth
 //------------------------------------------------
 // Register Driver
-router.post(
-  '/register',
-  fileUploader('driver', [
-    { name: 'image', maxCount: 1 },
-    { name: 'vehicleRcImage', maxCount: 1 },
-    { name: 'insuranceImage', maxCount: 1 },
-    { name: 'passbook', maxCount: 1 },
-    { name: 'licenseImage', maxCount: 1 },
-    { name: 'adharImage', maxCount: 1 }
-  ]),
+router.post("/register", fileUploader("driver", [
+  { name: "image", maxCount: 1 },
+  { name: "profileImage", maxCount: 1 },
+  { name: "vehicleRcFrontImage", maxCount: 1 },
+  { name: "vehicleRcBackImage", maxCount: 1 }, { name: "idProofImage", maxCount: 1 },
+  { name: "insuranceImage", maxCount: 1 },
+  { name: "passbook", maxCount: 1 },
+  { name: "licenseImage", maxCount: 1 },
+  { name: "adharImage", maxCount: 1 }
+]),
   registerDriver
 );
 
 // Login Driver
-router.post('/login', loginDriver);
+router.post("/login", loginDriver);
+router.post("/verifyOtp", verifyOtp);
 
 // Update Profile
-router.patch(
-  '/profile',
-  driverAuthenticate,
-  fileUploader('driver', [
-    { name: 'image', maxCount: 1 },
-    { name: 'vehicleRcImage', maxCount: 1 },
-    { name: 'insuranceImage', maxCount: 1 },
-    { name: 'licenseImage', maxCount: 1 },
-    { name: 'adharImage', maxCount: 1 }
-  ]),
+router.patch("/profile", driverAuthenticate, fileUploader("driver", [
+  { name: "image", maxCount: 1 },
+  { name: "vehicleRcFrontImage", maxCount: 1 },
+  { name: "vehicleRcBackImage", maxCount: 1 }, { name: "idProofImage", maxCount: 1 },
+  { name: "insuranceImage", maxCount: 1 },
+  { name: "passbook", maxCount: 1 },
+  { name: "licenseImage", maxCount: 1 },
+  { name: "adharImage", maxCount: 1 },
+  { name: "profileImage", maxCount: 1 },
+]),
   updateProfile
 );
 router.get('/profile', driverAuthenticate, getProfile);
