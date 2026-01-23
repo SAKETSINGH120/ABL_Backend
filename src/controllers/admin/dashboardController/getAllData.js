@@ -1,51 +1,38 @@
 const banner = require('../../../models/banner');
-const Category = require('../../../models/category');
-const Product = require('../../../models/product');
-const Service = require('../../../models/service');
 const User = require('../../../models/user');
 const Vendor = require('../../../models/vendor');
-const VendorProduct = require('../../../models/vendorProduct');
 const catchAsync = require('../../../utils/catchAsync');
+const VendorServices = require("../../../services/vendorProduct");
+const AdminProductServices = require("../../../services/adminProduct");
+const CategoryServices = require("../../../services/category");
+const OrderServices = require("../../../services/order")
 
 exports.getAllData = catchAsync(async (req, res, next) => {
   try {
-    // const categories = await Category.find({ cat_id: null }).populate({ path: "serviceId", select: "name" });
 
-    // // let categoryWithProduct = [];
-    // // for (let category of categories) {
-    // //     const count = await Product.countDocuments({ categoryId: category._id })
-    // //     categoryWithProduct.push({ ...category._doc, productCount: count })
-    // // }
+    const [categoryCount, subCategoryCount, vendorCount, bannerCount, userCount, vendorProductCount, adminProductCount, orderCount] = await Promise.all([
+      CategoryServices.countCategories({ cat_id: null }),
+      CategoryServices.countCategories({ cat_id: { $ne: null } }),
+      Vendor.countDocuments(),
+      banner.countDocuments(),
+      User.countDocuments(),
+      VendorServices.countProducts({ status: "active" }),
+      AdminProductServices.countProducts({ status: "active" }),
+      OrderServices.countOrders({ orderStatus: "accepted", paymentStatus: "paid" })
+    ]);
 
-    // const subCategories = await Category.find({ cat_id: { $ne: null } });
-    // // let subCategoryWithProduct = [];
-    // // for (let subCategory of subCategories) {
-    // //     const count = await Product.countDocuments({ subCategoryId: subCategory._id })
-    // //     subCategoryWithProduct.push({ ...subCategory._doc, productCount: count })
-    // // }
-
-    // const services = await Service.find();
-    // const productCount = [];
-    // for (let service of services) {
-    //     const count = await Product.countDocuments({ serviceId: service._id })
-    //     productCount.push({ name: service.name, productCount: count })
-    // }
-
-    // const vendorCount = await Vendor.countDocuments()
-    // const bannerCount = await banner.countDocuments()
-    // const userCount = await User.countDocuments()
-
-    let countData = {
-      banner: 10, // bannerCount || 10,
-      category: 10, //categories?.length || 10,
-      subCategory: 10, //subCategories.length || 10,
-      food:10, // productCount[0].productCount || 10,
-      grocery: 10, // productCount[1].productCount || 10,
-      vendor:10, // vendorCount || 10,
-      user:10, // userCount || 10
+    const countData = {
+      banner: bannerCount || 0,
+      category: categoryCount || 0,
+      subCategory: subCategoryCount || 0,
+      vendor: vendorCount || 0,
+      user: userCount || 0,
+      adminProduct: adminProductCount || 0,
+      vendorProduct: vendorProductCount || 0,
+      orderCount: orderCount || 0
     };
 
-    return res.status(200).json({ success: true, message: 'Data found', data: { countData } });
+    return res.status(200).json({ success: true, message: 'Data fetched successfully', data: { countData } });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
