@@ -7,7 +7,7 @@ exports.getWishlist = catchAsync(async (req, res, next) => {
 
   const [wishlist, cartProducts] = await Promise.all([Wishlist.findOne({ userId }).populate({
     path: 'items.productId',
-    select: 'name primary_image vendorSellingPrice mrp shortDescription rating status isDeleted subCategoryId brandId unitOfMeasurement variants',
+    select: 'name primary_image vendorSellingPrice mrp shortDescription rating status isDeleted subCategoryId brandId unitOfMeasurement variants sellingUnit',
     populate: [
       { path: 'brandId', select: 'name' },
       { path: 'unitOfMeasurement', select: 'name' },
@@ -50,6 +50,7 @@ exports.getWishlist = catchAsync(async (req, res, next) => {
       rating: item.productId.rating,
       brand: item.productId.brandId,
       unitOfMeasurement: item.productId.unitOfMeasurement,
+      sellingUnit: item.productId.sellingUnit,
       addedAt: item.addedAt,
       isInCart: cartMap.has(productKey),
       cartQty: cartMap.get(productKey) || 0,
