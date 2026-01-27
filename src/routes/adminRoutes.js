@@ -120,6 +120,10 @@ const { getAllAdmins, createAdmin, getAdminById, updateAdmin, deleteAdmin } = re
 
 // Variant Type
 const { createVariantType, getAllVariantTypes, getVariantTypeById, updateVariantType, deleteVariantType } = require('../controllers/admin/variantTypeController/variantTypeController');
+const { createBrand } = require('../controllers/admin/brandController/createBrand');
+const { getBrandById } = require('../controllers/admin/brandController/getBrandById');
+const { updateBrand } = require('../controllers/admin/brandController/updateBrand');
+const { deleteBrand } = require('../controllers/admin/brandController/deleteBrand');
 
 const router = express.Router();
 
@@ -205,7 +209,11 @@ router.post('/product/flag/toggle', adminAuthenticate, toggleProductFlag);
 //------------------------------------------------
 // brand
 //------------------------------------------------
+router.post('/brand/create', adminAuthenticate, createBrand);
 router.get('/brand/list', adminAuthenticate, getAllBrand);
+router.get('/brand/:brandId', adminAuthenticate, getBrandById);
+router.patch('/brand/:brandId', adminAuthenticate, updateBrand);
+router.delete('/brand/:brandId', adminAuthenticate, deleteBrand);
 
 //------------------------------------------------
 // toppins
