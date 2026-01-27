@@ -3,7 +3,7 @@ const catchAsync = require('../../../utils/catchAsync');
 
 exports.getRecentOrders = catchAsync(async (req, res) => {
   try {
-    const recentOrders = await newOrder.find().populate('userId', 'name email mobileNo').populate('vendorId', 'name email').populate('assignedDriver', 'name').sort({ createdAt: -1 }).limit(10);
+    const recentOrders = await newOrder.find({ orderStatus: "accepted", paymentStatus: { $in: ["paid", "success"] } }).populate('userId', 'name email mobileNo').populate('vendorId', 'name email').populate('assignedDriver', 'name').sort({ createdAt: -1 }).limit(10);
 
     // Transform orders data
     const orders = recentOrders.map((order) => ({

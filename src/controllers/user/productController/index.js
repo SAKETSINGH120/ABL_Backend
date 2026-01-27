@@ -4,6 +4,7 @@ const VendorServices = require('../../../services/vendor');
 const VendorProductServices = require('../../../services/vendorProduct');
 const CartServices = require('../../../services/cart');
 const { parseToBoolean } = require('../../../utils/parseToBoolean');
+const WishlistServices = require('../../../services/wishlist');
 
 exports.getProducts = catchAsync(async (req, res, next) => {
     try {
@@ -26,7 +27,14 @@ exports.getProducts = catchAsync(async (req, res, next) => {
             });
         }
 
-        const vendor = await VendorServices.getVendor({ status: true, pincode: user.pincode })
+        const vendorQuery = { status: true };
+
+        // will uncomment this code when we will add pincode in vendor
+        // if (user.pincode) {
+        //     vendorQuery.pincode = user.pincode;
+        // }
+
+        const vendor = await VendorServices.getVendor(vendorQuery)
         const vendorId = vendor?._id;
 
         const productQuery = {
@@ -58,10 +66,10 @@ exports.getProducts = catchAsync(async (req, res, next) => {
             productQuery.vendorId = vendorId;
         }
 
-        const [productList, cartProducts] = await Promise.all([VendorProductServices.getAllProducts(productQuery, [
+        const [productList, cartProducts, wishlist] = await Promise.all([VendorProductServices.getAllProducts(productQuery, [
             { path: 'variants.variantTypeId', select: 'name' },
             { path: 'unitOfMeasurement', select: 'name -_id' }
-        ]), CartServices.getCart({ userId: userId, status: 'active' })])
+        ]), CartServices.getCart({ userId: userId, status: 'active' }), WishlistServices.getWishlistByUserId(userId)])
 
         if (!productList || productList.length === 0) {
             return res.status(200).json({
@@ -78,6 +86,14 @@ exports.getProducts = catchAsync(async (req, res, next) => {
             cartProducts.items.forEach((item) => {
                 const key = `${item.productId}_${item.variantId || 'no-variant'}`;
                 cartMap.set(key, item.quantity);
+            });
+        }
+
+        const wishlistSet = new Set();
+
+        if (wishlist) {
+            wishlist.items.forEach((item) => {
+                wishlistSet.add(item.productId.toString());
             });
         }
 
@@ -98,6 +114,7 @@ exports.getProducts = catchAsync(async (req, res, next) => {
                 unitOfMeasurement: prod.unitOfMeasurement,
                 isInCart: cartMap.has(productKey),
                 cartQty: cartMap.get(productKey) || 0,
+                isInWishlist: wishlistSet.has(prod._id.toString()),
                 variants: prod.variants.map((variant) => {
                     const variantKey = `${prod._id}_${variant._id}`;
 

@@ -98,7 +98,8 @@ const OrderSchema = new Schema(
     razorpayOrderId: { type: String, default: null },
     isRated: { type: Boolean, default: false },
     isRefunded: { type: Boolean, default: false },
-    deliveryProofImage: { type: String, default: null }
+    deliveryProofImage: { type: String, default: null },
+    deliveryInstruction: { type: String, default: null },
   },
   { timestamps: true }
 );
