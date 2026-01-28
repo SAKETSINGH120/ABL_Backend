@@ -39,8 +39,7 @@ exports.getNewCart = async (req, res) => {
       return res.status(200).json({
         success: true,
         message: 'Cart is empty',
-        cart: null,
-        platformFee
+        cart: null
       });
     }
 
@@ -73,7 +72,6 @@ exports.getNewCart = async (req, res) => {
     }
 
     // const { distanceKm, durationText, deliveryCharge } = await getDeliveryCharge(origin, destination, setting?.googleMapApiKey);
-
     const platformFee = Number(setting?.plateformFee) || 10;
     const packingCharge = Number(setting?.packingCharge) || vendor.packingCharge || 0;
     const deliveryCharge = Number(setting?.deliveryCharge) || vendor.deliveryCharge || 0;

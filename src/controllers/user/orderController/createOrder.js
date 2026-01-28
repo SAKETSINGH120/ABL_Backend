@@ -1,8 +1,6 @@
 const VendorProduct = require("../../../models/vendorProduct");
 const Order = require("../../../models/order");
 
-// let bookingCounter = 3; // Persist in DB in production
-
 const createOrder = async (req, res) => {
     try {
         const {
@@ -18,8 +16,6 @@ const createOrder = async (req, res) => {
             paymentMode,
             razorpayOrderId = null
         } = req.body;
-
-        console.log('Request body:', req.body);
 
         const userId = req.user._id;
 

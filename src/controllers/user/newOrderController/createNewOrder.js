@@ -8,6 +8,7 @@ const Setting = require("../../../models/settings")
 const getDeliveryCharge = require("../../../utils/getDeliveryCharge");
 const Vendor = require("../../../models/vendor");
 const razorpay = require("../../../utils/razorpayInstance");
+const VendorProduct = require("../../../models/vendorProduct");
 
 /**
  * Creates one or more orders from a user's cart, with one order per shop.
@@ -274,6 +275,21 @@ exports.createNewOrder = async (req, res) => {
 };
 */
 
+// const destination = {
+//   lat: address.location.coordinates[1],
+//   long: address.location.coordinates[0],
+// };
+// const origin = {
+//   lat: vendor.location?.coordinates?.[1] ?? "28.639",
+//   long: vendor.location?.coordinates?.[0] ?? "77.236",
+// }
+// const {
+//   deliveryCharge,
+//   distanceKm,
+//   durationText,
+// } = await getDeliveryCharge(origin, destination, setting.googleMapApiKey);
+
+/*
 exports.createNewOrder = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -314,6 +330,15 @@ exports.createNewOrder = async (req, res) => {
       return res.status(400).json({ message: "Cart is empty." });
     }
 
+    const vendorId = cart.vendorId;
+    const [vendor, orderCount, setting] = await Promise.all([
+      Vendor.findById(vendorId),
+      newOrder.countDocuments(), Setting.findById("680f1081aeb857eee4d456ab").lean()
+    ]);
+    if (!vendor) {
+      return res.status(404).json({ message: "Vendor not found." });
+    }
+
     const products = [];
     for (const productData of cart.items) {
       products.push({
@@ -324,52 +349,12 @@ exports.createNewOrder = async (req, res) => {
         finalPrice: productData.finalPrice,
       });
     }
+
     const totalPrice = products.reduce((sum, p) => sum + p.finalPrice, 0);
-
-    const vendorId = cart.vendorId;
-    const [vendor, orderCount, setting] = await Promise.all([
-      Vendor.findById(vendorId),
-      newOrder.countDocuments(), Setting.findById("680f1081aeb857eee4d456ab").lean()
-    ]);
-    if (!vendor) {
-      return res.status(404).json({ message: "Vendor not found." });
-    }
-
-    const orderNumber = (orderCount + 1).toString().padStart(4, "0");
-    const booking_id = `ORD${orderNumber}`;
-    const destination = {
-      lat: address.location.coordinates[1],
-      long: address.location.coordinates[0],
-    };
-    const origin = {
-      lat: vendor.location?.coordinates?.[1] ?? "28.639",
-      long: vendor.location?.coordinates?.[0] ?? "77.236",
-    }
-
-    // const {
-    //   deliveryCharge,
-    //   distanceKm,
-    //   durationText,
-    // } = await getDeliveryCharge(origin, destination, setting.googleMapApiKey);
-
-    // if (distanceKm < 3) {
-    //   driverDeliveryCharge = setting.driverPayoutLessThan3;
-    //   perKmCost = setting.driverPayoutLessThan3;
-    // }
-
-    // if (distanceKm >= 3) {
-    //   perKmCost = setting.driverPayoutMoreThan3;
-    //   driverDeliveryCharge = distanceKm * perKmCost;
-    // }
-
-    // const deliveryChargeAmount = deliveryCharges ? deliveryCharges.charge : vendor.deliveryCharge ?? 10;
-
-    let perKmCost = 0;
-    let driverDeliveryCharge = 10;
-    const packingCharge = setting.packingCharge || vendor.packingCharge || 0;
-    const deliveryChargeAmount = setting.deliveryCharge || vendor.deliveryCharge || 10;
+    const driverDeliveryCharge = Number(setting?.driverDeliveryCharge) || 10;
+    const packingCharge = Number(setting?.packingCharge) || vendor.packingCharge || 0;
+    const deliveryChargeAmount = Number(setting?.deliveryCharge) || vendor.deliveryCharge || 10;
     const platformFee = Number(setting?.plateformFee) || 10;
-
     const gstValue = Number(setting?.gst) || 18;
     const gstAmount = Math.ceil((totalPrice + deliveryChargeAmount + packingCharge + platformFee) * (gstValue / 100));
     const finalTotalPrice =
@@ -379,23 +364,29 @@ exports.createNewOrder = async (req, res) => {
       Number(platformFee) +
       Number(gstAmount);
 
-    const razorpayAmount = Math.floor(finalTotalPrice * 100);
-
-    const options = {
-      amount: razorpayAmount,
-      currency: "INR",
-      receipt: "abl_" + Math.floor(Math.random() * 10000),
-    };
-
     let razorpayOrder;
-    try {
-      razorpayOrder = await razorpay.orders.create(options);
-    } catch (error) {
-      console.log(error);
-      return res.status(500).json({ message: "Failed to create Razorpay order" });
+    if (paymentMode === "wallet" && user.wallet < finalTotalPrice) {
+      return res.status(400).json({ message: "Insufficient wallet balance." });
+    } else {
+      const razorpayAmount = Math.floor(finalTotalPrice * 100);
+      const options = {
+        amount: razorpayAmount,
+        currency: "INR",
+        receipt: "abl_" + Math.floor(Math.random() * 10000),
+      };
+
+      try {
+        razorpayOrder = await razorpay.orders.create(options);
+      } catch (error) {
+        console.log(error);
+        return res.status(500).json({ message: "Failed to create Razorpay order" });
+      }
     }
 
-    const order = new newOrder({
+    const orderNumber = (orderCount + 1).toString().padStart(4, "0");
+    const booking_id = `ORD${orderNumber}`;
+
+    const orderDetails = {
       booking_id,
       vendorId,
       userId,
@@ -408,20 +399,40 @@ exports.createNewOrder = async (req, res) => {
       plateFormFee: platformFee,
       gstValue,
       gstAmount,
-      appliedCoupons: [], // New field
-      totalCouponDiscount: 0, // New field
+      appliedCoupons: [],
+      totalCouponDiscount: 0,
       deliveryCharge: deliveryChargeAmount,
       driverDeliveryCharge,
       packingCharge,
       finalTotalPrice,
-      paymentId: paymentId || "",
-      paymentStatus,
+      paymentId: "",
+      paymentStatus: paymentMode === "wallet" ? "paid" : "pending",
       deliveryInstruction,
       isUsedCoin,
       usedCoin: isUsedCoin ? usedCoin : 0,
       coinDiscount: isUsedCoin ? coinDiscount : 0,
-      razorpayOrderId: razorpayOrder.id
-    });
+      orderStatus: paymentMode === "wallet" ? "accepted" : "pending",
+    };
+
+    if (paymentMode === "wallet") {
+      const productIds = products.map((product) => product.productId);
+      const vendorProducts = await VendorProduct.find({ _id: { $in: productIds } });
+
+      user.wallet -= finalTotalPrice;
+      await user.save();
+      await WalletHistory.create({
+        userId,
+        action: "debit",
+        amount: finalTotalPrice,
+        balance_after_action: user.wallet,
+        description: `Order ${booking_id}`,
+      });
+    } else {
+      orderDetails.razorpayOrderId = razorpayOrder.id;
+    }
+
+    const order = new newOrder(orderDetails);
+    await order.save();
 
     io.to(`vendor-${vendorId}`).emit("new-order", {
       _id: order._id,
@@ -430,188 +441,6 @@ exports.createNewOrder = async (req, res) => {
       shopName: "",
       total: finalTotalPrice,
     });
-
-    // cart.status = "ordered";
-    order.save();
-
-    // await Promise.all([
-    //   ,
-    //   // cart.save(),
-    // ]);
-
-    // const createdOrders = [];
-    /*
-        for (const shopData of cart.shops) {
-          const { shopId, vendorId, items } = shopData;
-          // --- Calculate Charges ---
-          const deliveryChargeObj = deliveryCharges.find(
-            (d) => d.shopId === shopId.toString()
-          );
-    
-          const defaultAddress = await Address.findOne({ userId, isDefault: true });
-    
-          var isDefaultAddress = defaultAddress ? true : false;
-    
-          let destination;
-          if (defaultAddress) {
-            destination = {
-              lat: defaultAddress.location.coordinates[1],
-              long: defaultAddress.location.coordinates[0],
-            };
-          } else {
-            destination = {
-              lat: Number(user.lat),
-              long: Number(user.long),
-            };
-          }
-    
-          // let perKmCost = 0;
-          // let driverDeliveryCharge = 0;
-          // const {
-          //   deliveryChrge,
-          //   distanceKm,
-          //   durationText,
-          // } = await getDeliveryCharge(origin, destination, setting.googleMapApiKey);
-    
-          // if (distanceKm < 3) {
-          //   console.log("inside less than 3 km");
-          //   driverDeliveryCharge = setting.driverPayoutLessThan3;
-          //   perKmCost = setting.driverPayoutLessThan3;
-          // }
-    
-          // if (distanceKm >= 3) {
-          //   console.log("inside more than 3 km");
-          //   perKmCost = setting.driverPayoutMoreThan3;
-          //   driverDeliveryCharge = distanceKm * perKmCost; // Example calculation
-          // }
-    
-          // console.log("perKmCost", perKmCost);
-          // console.log("distanceKm", distanceKm);
-          // console.log("driverDeliveryCharge", driverDeliveryCharge);
-          // const deliveryCharge = deliveryChargeObj ? deliveryChargeObj.charge : 0;
-          // const packingCharge = shop.packingCharge || 0;
-    
-          const productData = items.map((item) => {
-            // Try to find matching cooking instruction for this product
-            const instructionObj = cookingInstructions.find(
-              (c) =>
-                c.shopId.toString() === shopId.toString() &&
-                c.productId.toString() === item.productId.toString()
-            );
-    
-            return {
-              productId: item.productId,
-              price: item.price,
-              quantity: item.quantity,
-              toppings: item.toppings,
-              finalPrice: item.finalPrice,
-              cookingInstruction: instructionObj?.note || "", // ✅ Add this line
-            };
-          });
-    
-          const itemTotal = productData.reduce((sum, p) => sum + p.finalPrice, 0);
-    
-          // --- NEW COUPON LOGIC ---
-          // Filter coupons to find ones applicable to this specific shop order
-          // const applicableCoupons = appliedCouponsFromRequest.filter(
-          //   (coupon) =>
-          //     !coupon.shopId || coupon.shopId.toString() === shopId.toString()
-          // );
-    
-          // Prepare coupon data for the OrderSchema
-          // const appliedCouponsForSchema = applicableCoupons.map((c) => ({
-          //   couponId: c.couponId,
-          //   code: c.code,
-          //   discountAmount: c.discountAmount,
-          // }));
-    
-          // Calculate the total discount for THIS order
-          // const totalCouponDiscount = appliedCouponsForSchema.reduce(
-          //   (sum, c) => sum + c.discountAmount,
-          //   0
-          // );
-    
-          // const totalDiscount = +totalCouponDiscount + (isUsedCoin ? +coinDiscount : 0);
-    
-    
-    
-          const plateFormFee = +setting.plateformFee || 0;
-          const gstValue = +setting.gst || 0;
-          const gstAmount = (+itemTotal * gstValue) / 100;
-    
-          const finalTotalPrice =
-            Math.max(0, +itemTotal - totalDiscount) +
-            +deliveryCharge +
-            +packingCharge +
-            plateFormFee +
-            gstAmount;
-    
-          // --- Create the new Order instance ---
-          const order = new newOrder({
-            booking_id,
-            shopId,
-            vendorId,
-            userId,
-            addressId: address._id, // Use the found address's ID
-            deliveryDate,
-            deliveryTime,
-            paymentMode,
-            productData,
-            itemTotal,
-            plateFormFee,
-            gstValue,
-            gstAmount,
-            appliedCoupons: appliedCouponsForSchema, // New field
-            totalCouponDiscount, // New field
-            deliveryCharge,
-            driverDeliveryCharge,
-            packingCharge,
-            finalTotalPrice,
-            serviceType: cart.serviceType,
-            paymentId,
-            paymentStatus,
-            deliveryInstruction, // Save delivery instructions
-            // cookingInstruction, // Save cooking instructions
-            // Set default values for other fields as needed by your schema
-    
-            isUsedCoin,
-            usedCoin: isUsedCoin ? usedCoin : 0,
-            coinDiscount: isUsedCoin ? coinDiscount : 0,
-          });
-    
-          // Emit a real-time event to the vendor
-          io.to(`vendor-${vendorId}`).emit("new-order", {
-            _id: order._id,
-            customerName: user.name,
-            items: productData,
-            shopName: shop.name,
-            total: finalTotalPrice,
-          });
-    
-          await order.save();
-          createdOrders.push(order);
-        }
-    */
-    // Mark the cart as ordered once all orders are successfully created
-
-    // --- Handle First Order Referral Bonus ---
-    // const userOrderCount = await newOrder.countDocuments({ userId });
-    // if (userOrderCount === createdOrders.length && user.referredBy) {
-    //   // Check if these are the user's very first orders
-    //   const referredUser = await User.findById(user.referredBy);
-    //   if (referredUser) {
-    //     let bonusAmount = 20;
-    //     await WalletHistory.create({
-    //       userId: referredUser._id,
-    //       action: "credit",
-    //       amount: bonusAmount,
-    //       balance_after_action: referredUser.wallet + bonusAmount,
-    //       description: `Credit ${bonusAmount} by goRabit for referral bonus`,
-    //     });
-    //     referredUser.wallet += bonusAmount;
-    //     await referredUser.save();
-    //   }
-    // }
 
     if (isUsedCoin && usedCoin > 0 && user.wallet >= usedCoin) {
       await WalletHistory.create({
@@ -640,3 +469,309 @@ exports.createNewOrder = async (req, res) => {
     });
   }
 };
+*/
+
+async function restock(products) {
+  for (const item of products) {
+    let result;
+    if (item.variantId) {
+      result = await VendorProduct.updateOne(
+        {
+          _id: item.productId,
+          variants: { $elemMatch: { _id: item.variantId } }
+        },
+        {
+          $inc: { "variants.$.stock": item.quantity }
+        }
+      );
+    } else {
+      result = await VendorProduct.updateOne(
+        { _id: item.productId },
+        { $inc: { stock: item.quantity } }
+      );
+    }
+
+    if (result.modifiedCount === 0) {
+      console.warn(`Restock (Wallet) failed for product ${item.productId} (Variant: ${item.variantId || 'N/A'}). Item might be deleted.`);
+    }
+  }
+}
+
+async function deductStockForWallet(products) {
+  const deducted = [];
+  try {
+    for (const item of products) {
+      if (item.variantId) {
+        const result = await VendorProduct.updateOne(
+          {
+            _id: item.productId,
+            variants: {
+              $elemMatch: {
+                _id: item.variantId,
+                stock: { $gte: item.quantity }
+              }
+            }
+          },
+          {
+            $inc: { "variants.$.stock": -item.quantity }
+          }
+        );
+
+        if (result.modifiedCount === 0) {
+          throw new Error("Variant stock deduction failed");
+        }
+      } else {
+        const result = await VendorProduct.updateOne(
+          {
+            _id: item.productId,
+            stock: { $gte: item.quantity }
+          },
+          {
+            $inc: { stock: -item.quantity }
+          }
+        );
+
+        if (result.modifiedCount === 0) {
+          throw new Error("Product stock deduction failed");
+        }
+      }
+      deducted.push(item);
+    }
+  } catch (err) {
+    await restock(deducted);
+    throw err;
+  }
+}
+
+exports.createNewOrder = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const {
+      deliveryDate = new Date(),
+      deliveryTime = "15",
+      paymentMode,
+      deliveryInstruction,
+      isUsedCoin = false,
+      usedCoin = 0,
+      coinDiscount = 0,
+      addressId
+    } = req.body;
+
+    /* ------------------ BASIC VALIDATION ------------------ */
+    const [user, address, cart] = await Promise.all([
+      User.findById(userId),
+      Address.findOne({ userId, _id: addressId }),
+      newCart.findOne({ userId, status: "active" })
+    ]);
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!address) return res.status(400).json({ message: "Address not found" });
+    if (!cart || cart.items.length === 0)
+      return res.status(400).json({ message: "Cart is empty" });
+
+    /* ------------------ PREPARE PRODUCTS ------------------ */
+
+    const products = cart.items.map(item => ({
+      productId: item.productId,
+      variantId: item.variantId || null,
+      quantity: item.quantity,
+      price: item.price,
+      finalPrice: item.finalPrice
+    }));
+
+    /* ------------------ STOCK VALIDATION ------------------ */
+
+    const productIds = products.map(p => p.productId);
+
+    const vendorProducts = await VendorProduct.find({
+      _id: { $in: productIds },
+      status: "active",
+      isDeleted: false
+    });
+
+    const productMap = new Map();
+    vendorProducts.forEach(p => productMap.set(p._id.toString(), p));
+
+    const outOfStock = [];
+
+    for (const item of products) {
+      const product = productMap.get(item.productId.toString());
+
+      if (!product) {
+        outOfStock.push({
+          productId: item.productId,
+          reason: "Product not found"
+        });
+        continue;
+      }
+
+      // Variant product
+      if (item.variantId) {
+        const variant = product.variants.find(
+          v => v._id?.toString() === item.variantId.toString()
+        );
+
+        if (!variant) {
+          outOfStock.push({
+            productId: item.productId,
+            variantId: item.variantId,
+            reason: "Variant not found"
+          });
+          continue;
+        }
+
+        if (Number(variant.stock) < item.quantity) {
+          outOfStock.push({
+            productId: item.productId,
+            variantId: item.variantId,
+            availableStock: variant.stock,
+            requested: item.quantity
+          });
+        }
+      }
+      // Simple product
+      else {
+        if (Number(product.stock) < item.quantity) {
+          outOfStock.push({
+            productId: item.productId,
+            availableStock: product.stock,
+            requested: item.quantity
+          });
+        }
+      }
+    }
+
+    if (outOfStock.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Some items are out of stock",
+        data: outOfStock
+      });
+    }
+
+    /* ------------------ PRICE CALCULATION ------------------ */
+
+    const totalPrice = products.reduce((sum, p) => sum + p.finalPrice, 0);
+
+    const setting = await Setting.findById("680f1081aeb857eee4d456ab").lean();
+    const vendor = await Vendor.findById(cart.vendorId);
+
+    const deliveryCharge = Number(setting?.deliveryCharge || vendor.deliveryCharge || 10);
+    const packingCharge = Number(setting?.packingCharge || vendor.packingCharge || 0);
+    const platformFee = Number(setting?.plateformFee || 10);
+    const gstValue = Number(setting?.gst || 18);
+
+    const gstAmount = Math.ceil(
+      (totalPrice + deliveryCharge + packingCharge + platformFee) *
+      (gstValue / 100)
+    );
+
+    const finalTotalPrice =
+      totalPrice + deliveryCharge + packingCharge + platformFee + gstAmount;
+
+    /* ------------------ WALLET CHECK ------------------ */
+
+    if (paymentMode === "wallet" && user.wallet < finalTotalPrice) {
+      return res.status(400).json({ message: "Insufficient wallet balance" });
+    }
+
+    /* ------------------ CREATE RAZORPAY ORDER ------------------ */
+
+    let razorpayOrder = null;
+
+    if (paymentMode !== "wallet") {
+      razorpayOrder = await razorpay.orders.create({
+        amount: Math.floor(finalTotalPrice * 100),
+        currency: "INR",
+        receipt: "ORD_" + Date.now()
+      });
+    }
+
+    /* ------------------ CREATE ORDER ------------------ */
+
+    const orderCount = await newOrder.countDocuments();
+    const booking_id = `ORD${String(orderCount + 1).padStart(4, "0")}`;
+
+    const order = await newOrder.create({
+      booking_id,
+      vendorId: cart.vendorId,
+      userId,
+      addressId,
+      productData: products,
+      deliveryDate,
+      deliveryTime,
+      paymentMode,
+      itemTotal: totalPrice,
+      deliveryCharge,
+      packingCharge,
+      plateFormFee: platformFee,
+      gstValue,
+      gstAmount,
+      finalTotalPrice,
+      paymentStatus: paymentMode === "wallet" ? "paid" : "pending",
+      orderStatus: paymentMode === "wallet" ? "accepted" : "pending",
+      razorpayOrderId: razorpayOrder?.id || null,
+      deliveryInstruction,
+      isUsedCoin,
+      usedCoin,
+      coinDiscount
+    });
+
+    /* ------------------ WALLET DEDUCTION ------------------ */
+
+    if (paymentMode === "wallet") {
+      try {
+        await deductStockForWallet(products);
+        user.wallet -= finalTotalPrice;
+        cart.status = "ordered";
+        await cart.save();
+        await user.save();
+
+        await WalletHistory.create({
+          userId,
+          action: "debit",
+          amount: finalTotalPrice,
+          balance_after_action: user.wallet,
+          description: `Order ${booking_id}`
+        });
+        io.to(`vendor-${vendorId}`).emit("new-order", {
+          _id: order._id,
+          customerName: user.name,
+          items: products,
+          shopName: "",
+          total: finalTotalPrice,
+        });
+      } catch (err) {
+        await newOrder.findByIdAndUpdate(order._id, {
+          orderStatus: "cancelled",
+          paymentStatus: "failed"
+        });
+
+        return res.status(409).json({
+          success: false,
+          message: "Stock unavailable while processing wallet order",
+          error: err.message
+        });
+      }
+    }
+
+    /* ------------------ RESPONSE ------------------ */
+
+    return res.status(201).json({
+      success: true,
+      orderId: razorpayOrder?.id || null,
+      amount: razorpayOrder?.amount || finalTotalPrice,
+      currency: razorpayOrder?.currency || "INR",
+      userData: user,
+      id: order._id,
+    });
+  } catch (error) {
+    console.error("Create Order Error:", error);
+    return res.status(500).json({
+      message: "Something went wrong while creating order",
+      error: error.message
+    });
+  }
+};
+
+exports.deductStockForWallet = deductStockForWallet;
