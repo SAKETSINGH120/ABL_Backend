@@ -13,12 +13,12 @@ const verifyPaymentForWallet = async (req, res) => {
 
   console.log('signature');
 
-  // if (receivedSignature !== generatedSignature) {
-  //   return res.status(400).json({ success: false, message: 'Invalid signature' });
-  // }
+  if (receivedSignature !== generatedSignature) {
+    return res.status(400).json({ success: false, message: 'Invalid signature' });
+  }
 
   try {
-    const history = await WalletHistory.findOne({ razorpayOrderId: orderId });
+    const history = await WalletHistory.findOne({ razorpayOrderId: orderId, action: 'walletrecharge' });
 
     if (!history) {
       return res.status(404).json({ success: false, message: 'History not found' });

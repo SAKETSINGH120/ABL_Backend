@@ -14,23 +14,31 @@ exports.getSalesChart = catchAsync(async (req, res) => {
         },
         {
             $project: {
-                serviceType: 1,
+                // serviceType: 1,
                 finalTotalPrice: 1,
                 date: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }
             }
         },
+        // {
+        //     $group: {
+        //         _id: "$date",
+        //         food: {
+        //             $sum: {
+        //                 $cond: [{ $eq: ["$serviceType", "food"] }, "$finalTotalPrice", 0]
+        //             }
+        //         },
+        //         mart: {
+        //             $sum: {
+        //                 $cond: [{ $eq: ["$serviceType", "grocery"] }, "$finalTotalPrice", 0]
+        //             }
+        //         }
+        //     }
+        // },
         {
             $group: {
                 _id: "$date",
-                food: {
-                    $sum: {
-                        $cond: [{ $eq: ["$serviceType", "food"] }, "$finalTotalPrice", 0]
-                    }
-                },
-                mart: {
-                    $sum: {
-                        $cond: [{ $eq: ["$serviceType", "grocery"] }, "$finalTotalPrice", 0]
-                    }
+                overall: {
+                    $sum: "$finalTotalPrice"
                 }
             }
         },
@@ -46,8 +54,7 @@ exports.getSalesChart = catchAsync(async (req, res) => {
         const dayData = orders.find(o => o._id === dateStr);
         result.push({
             day: dateStr,
-            food: dayData?.food || 0,
-            mart: dayData?.mart || 0
+            overall: dayData?.overall || 0
         });
     }
 

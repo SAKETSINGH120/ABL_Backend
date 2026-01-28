@@ -1,25 +1,32 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
-const ProductDataSchema = new Schema({
+const ProductDataSchema = new Schema(
+  {
     productId: { type: Schema.Types.ObjectId, ref: 'VendorProduct', required: true },
     variantId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "VariantType"
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'VariantType'
     },
     price: { type: Number, required: true },
     quantity: { type: Number, required: true },
-    finalPrice: { type: Number, required: true },
+    finalPrice: { type: Number, required: true }
     // cookingInstruction: { type: String, default: '' },
-}, { _id: false });
+  },
+  { _id: false }
+);
 
-const AppliedCouponSchema = new Schema({
+const AppliedCouponSchema = new Schema(
+  {
     couponId: { type: Schema.Types.ObjectId, ref: 'Coupon', required: true },
     code: { type: String, required: true },
     discountAmount: { type: Number, required: true, min: 0 }
-}, { _id: false });
+  },
+  { _id: false }
+);
 
-const OrderSchema = new Schema({
+const OrderSchema = new Schema(
+  {
     booking_id: { type: String, required: true },
     // shopId: { type: Schema.Types.ObjectId, ref: 'Shop', required: true },
     vendorId: { type: Schema.Types.ObjectId, ref: 'Vendor', required: true },
@@ -48,9 +55,25 @@ const OrderSchema = new Schema({
     // serviceType: { type: String, enum: ['food', 'grocery'], default: 'food' },
     finalTotalPrice: { type: Number, required: true },
     orderStatus: {
-        type: String,
-        enum: ['pending', 'accepted', 'start_packing', 'delay', 'ready', 'shipped', 'picked up', 'running', 'out of delivery', 'delivered', 'cancelledByUser', 'cancelledByVendor', 'cancelledByDriver', 'cancelledByAdmin', "cancelled"],
-        default: 'pending'
+      type: String,
+      enum: [
+        'pending',
+        'accepted',
+        'start_packing',
+        'delay',
+        'ready',
+        'shipped',
+        'picked up',
+        'running',
+        'out of delivery',
+        'delivered',
+        'cancelledByUser',
+        'cancelledByVendor',
+        'cancelledByDriver',
+        'cancelledByAdmin',
+        'cancelled'
+      ],
+      default: 'pending'
     },
     packingTime: { type: Number, default: null },
     preparationTime: { type: Number, default: null },
@@ -65,9 +88,9 @@ const OrderSchema = new Schema({
     deliveredAt: { type: Date, default: null },
     cancelledAt: { type: Date, default: null },
     paymentMode: {
-        type: String,
-        enum: ['cash', 'card', 'upi', 'wallet', 'cod', 'online'],
-        required: true
+      type: String,
+      enum: ['cash', 'card', 'upi', 'wallet', 'cod', 'online'],
+      required: true
     },
     paymentStatus: { type: String, enum: ['pending', 'success', 'paid', 'failed'], default: 'pending' },
     paymentId: { type: String, default: null },
@@ -75,6 +98,10 @@ const OrderSchema = new Schema({
     razorpayOrderId: { type: String, default: null },
     isRated: { type: Boolean, default: false },
     isRefunded: { type: Boolean, default: false },
-}, { timestamps: true });
+    deliveryProofImage: { type: String, default: null },
+    deliveryInstruction: { type: String, default: null },
+  },
+  { timestamps: true }
+);
 
 module.exports = mongoose.model('newOrder', OrderSchema);

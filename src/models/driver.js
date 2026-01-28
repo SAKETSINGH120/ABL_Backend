@@ -2,7 +2,8 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
-const driverSchema = new Schema({
+const driverSchema = new Schema(
+  {
     // --- Driver basic details ---
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true },
@@ -17,22 +18,25 @@ const driverSchema = new Schema({
     otp: { code: String, expiresAt: Date },
     // --- Vehicle basic details ---
     vehicle: {
-        type: { type: String, required: true, trim: true },
-        model: { type: String, required: true, trim: true },
-        registrationNumber: { type: String, required: true, unique: true, trim: true },
-        insuranceNumber: { type: String, trim: true }
+      type: { type: String, trim: true },
+      model: { type: String, trim: true },
+      registrationNumber: { type: String, trim: true },
+      insuranceNumber: { type: String, trim: true }
     },
     // --- Driver documents ---
-    vehicleRcImage: { type: String, default: '' },
+    vehicleRcFrontImage: { type: String, default: '' },
+    vehicleRcBackImage: { type: String, default: '' },
     insuranceImage: { type: String, default: '' },
     licenseImage: { type: String, default: '' },
     adharImage: { type: String, default: '' },
+    idProofImage: { type: String, default: '' },
+    profileImage: { type: String, default: '' },
     // --- commission and wallet details ---
     commission: { type: Number, default: 0 },
     wallet_balance: { type: Number, default: 0 },
     cashCollection: { type: Number, default: 0 },
     payoutType: { type: String, enum: ['daily', 'weekly', 'monthly'], default: 'weekly' },
-    personWithDisability:{ type:String, enum: ['0', '1'], default: '0'},
+    personWithDisability: { type: String, enum: ['0', '1'], default: '0' },
 
     // BANK DETAILS (now handled in Vendor model directly)
     ifsc: { type: String, default: '' },
@@ -42,30 +46,32 @@ const driverSchema = new Schema({
     benificiaryName: { type: String, default: '' },
     passbook: { type: String, default: '' },
 
-
     isVerified: { type: Boolean, default: false },
     isBlocked: { type: Boolean, default: false },
     // for firebase cloud messaging
-    deviceId: { type: String, required: true },
-    deviceToken: { type: String, required: true },
+    deviceId: { type: String },
+    deviceToken: { type: String },
     // current order assigned to driver
     currentOrderId: { type: mongoose.Schema.Types.ObjectId, ref: 'Order', default: null },
     // Add inside driverSchema (anywhere before closing the schema)
     location: {
-        type: {
-            type: String,
-            enum: ['Point'],
-            default: 'Point'
-        },
-        coordinates: {
-            type: [Number], // [longitude, latitude]
-            default: [0, 0]
-        }
+      type: {
+        type: String,
+        enum: ['Point'],
+        default: 'Point'
+      },
+      coordinates: {
+        type: [Number], // [longitude, latitude]
+        default: [0, 0]
+      }
     },
+    pincode: { type: Number, required: true },
     rating: { type: String, default: '0' }
-}, {
+  },
+  {
     timestamps: true
-});
+  }
+);
 
 driverSchema.index({ location: '2dsphere' });
 const Driver = mongoose.model('Driver', driverSchema);

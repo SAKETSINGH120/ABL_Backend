@@ -39,6 +39,7 @@ const getAllOrder = require('../controllers/admin/orderController/getAllOrder');
 const { createBanner } = require('../controllers/admin/bannerController/createBanner');
 const { getAllBanners } = require('../controllers/admin/bannerController/getBanner');
 const { getAllUsers } = require('../controllers/admin/userController/getUser');
+const { getUsersWithWalletRecharge } = require('../controllers/admin/userController/getUsersWithWalletRecharge');
 const { addCms } = require('../controllers/admin/cmsController/addCms');
 const { updateCms } = require('../controllers/admin/cmsController/updateCms');
 const { getCms } = require('../controllers/admin/cmsController/getCms');
@@ -98,12 +99,16 @@ const { getTopShops, addTopShop, updateTopShop, deleteTopShop } = require('../co
 const { updateVendorDetails } = require('../controllers/admin/vendorController/updateVendorDetails');
 const { payoutList } = require('../controllers/admin/vendorController/payoutList');
 const { walletHistoryOfVendor } = require('../controllers/admin/vendorController/walletHistoryOfVendor');
+const { getAllQueries } = require('../controllers/admin/queryController/getAllQueries');
+const { updateQueryStatus } = require('../controllers/admin/queryController/updateQueryStatus');
+const { getQueryDetails } = require('../controllers/admin/queryController/getQueryDetails');
 const { walletHistoryOfDriver } = require('../controllers/admin/vendorController/walletHistoryOfDriver');
 const { blockUser } = require('../controllers/admin/userController/blockUser');
 const { getUserDetails } = require('../controllers/admin/userController/getUserDetails');
 const { getSalesChart } = require('../controllers/admin/dashboardController/getSalesChart');
 const { getEarningChart } = require('../controllers/admin/dashboardController/getEarningChart');
 const { getAverageOrderChart } = require('../controllers/admin/dashboardController/getAverageOrderChart');
+const { getRecentOrders } = require('../controllers/admin/dashboardController/recentOrder');
 const { updateShop } = require('../controllers/admin/shopController/updateShop');
 const { settleUserWallet } = require('../controllers/admin/walletController/settleUserWallet');
 const { walletHistoryOfUser } = require('../controllers/admin/vendorController/walletHistoryOfUser');
@@ -115,6 +120,10 @@ const { getAllAdmins, createAdmin, getAdminById, updateAdmin, deleteAdmin } = re
 
 // Variant Type
 const { createVariantType, getAllVariantTypes, getVariantTypeById, updateVariantType, deleteVariantType } = require('../controllers/admin/variantTypeController/variantTypeController');
+const { createBrand } = require('../controllers/admin/brandController/createBrand');
+const { getBrandById } = require('../controllers/admin/brandController/getBrandById');
+const { updateBrand } = require('../controllers/admin/brandController/updateBrand');
+const { deleteBrand } = require('../controllers/admin/brandController/deleteBrand');
 
 const router = express.Router();
 
@@ -131,6 +140,7 @@ router.get('/dashboard', adminAuthenticate, getAllData);
 router.get('/dashboard/sales-chart', getSalesChart);
 router.get('/dashboard/earnings-chart', getEarningChart);
 router.get('/dashboard/average-order-chart', getAverageOrderChart);
+router.get('/dashboard/recent-orders', adminAuthenticate, getRecentOrders);
 
 //------------------------------------------------
 // change password
@@ -199,7 +209,11 @@ router.post('/product/flag/toggle', adminAuthenticate, toggleProductFlag);
 //------------------------------------------------
 // brand
 //------------------------------------------------
+router.post('/brand/create', adminAuthenticate, createBrand);
 router.get('/brand/list', adminAuthenticate, getAllBrand);
+router.get('/brand/:brandId', adminAuthenticate, getBrandById);
+router.patch('/brand/:brandId', adminAuthenticate, updateBrand);
+router.delete('/brand/:brandId', adminAuthenticate, deleteBrand);
 
 //------------------------------------------------
 // toppins
@@ -310,6 +324,7 @@ router.patch('/driver/block/:driverId', adminAuthenticate, toggleBlockStatus);
 // user
 //------------------------------------------------
 router.get('/user/list', adminAuthenticate, getAllUsers);
+router.get('/user/wallet-recharge', adminAuthenticate, getUsersWithWalletRecharge);
 router.get('/user/:userId', adminAuthenticate, getUserDetails);
 router.patch('/user/:userId/block', adminAuthenticate, blockUser);
 
@@ -359,6 +374,7 @@ router.get('/payout', adminAuthenticate, payoutList);
 
 // router.post("/wallet/request", adminAuthenticate, createWalletRequest)
 router.get('/wallet/request', adminAuthenticate, getWalletRequest);
+// this api for approve the payment request
 router.post('/wallet/request/status/:requestId', adminAuthenticate, changeStatusWalletRequest);
 router.post('/wallet/request/settle/:requestId', adminAuthenticate, settleRequest);
 // vendor wallet
@@ -405,6 +421,13 @@ router.delete('/deleteadmin/:id', adminAuthenticate, deleteAdmin);
 router.get('/cms', getCms);
 router.post('/cms', adminAuthenticate, addCms);
 router.patch('/cms/:id', adminAuthenticate, updateCms);
+
+//------------------------------------------------
+// Query Management
+//------------------------------------------------
+router.get('/queries', adminAuthenticate, getAllQueries);
+router.get('/query/:queryId', adminAuthenticate, getQueryDetails);
+router.patch('/query/:queryId', adminAuthenticate, updateQueryStatus);
 
 //------------------------------------------------
 // Variant Type

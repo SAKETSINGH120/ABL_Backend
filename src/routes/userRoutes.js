@@ -71,7 +71,7 @@ const { getSearch } = require('../controllers/user/homeController/getSearch');
 const { walletHistoryOfUser } = require('../controllers/user/walletController/walletHistoryOfUser');
 const { getAvailableCoupons } = require('../controllers/user/newCartController/getAvailableCoupons');
 const { getCmsForWeb } = require('../controllers/user/cmsController/getCmsForWeb');
-const createRazorpayOrderForWallet = require('../controllers/user/paymentController/createRazorpayOrderForwallet');
+const createRazorpayOrderForWallet = require('../controllers/user/paymentController/createRazorpayOrderForWallet');
 const verifyPaymentForWallet = require('../controllers/user/paymentController/verifyPaymentForWallet');
 const { getAllBrands } = require('../controllers/user/brand/getBrands');
 const { addToWishlist } = require('../controllers/user/wishlistController/addToWishlist');
@@ -79,6 +79,8 @@ const { removeFromWishlist } = require('../controllers/user/wishlistController/r
 const { getWishlist } = require('../controllers/user/wishlistController/getWishlist');
 const { clearWishlist } = require('../controllers/user/wishlistController/clearWishlist');
 const { getProducts } = require('../controllers/user/productController');
+const { submitQuery } = require('../controllers/user/queryController/submitQuery');
+const { getQueries } = require('../controllers/user/queryController/getQueries');
 const router = express.Router();
 
 // router.get("/test", (req,res)=>{
@@ -281,5 +283,11 @@ router.post('/notification/send', async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to send notification', error: error.message });
   }
 });
+
+//------------------------------------------------
+// query
+//------------------------------------------------
+router.post('/query', userAuthenticate, submitQuery);
+router.get('/queries', userAuthenticate, getQueries);
 
 module.exports = router;

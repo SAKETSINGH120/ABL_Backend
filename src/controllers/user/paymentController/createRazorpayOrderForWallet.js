@@ -18,11 +18,11 @@ const createRazorpayOrderForWallet = async (req, res) => {
 
     await WalletHistory.create({
       userId: req.user._id,
-      action: 'debit',
+      action: 'walletrecharge',
       amount: amount,
       balance_after_action: 100,
-      description: 'wallet Amount Add',
-      orderId: order.id,
+      description: 'Wallet recharge',
+      razorpayOrderId: order.id,
       status: 'Pending'
     });
 

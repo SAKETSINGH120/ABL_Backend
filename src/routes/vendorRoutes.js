@@ -52,12 +52,14 @@ const { getAllShopWallet } = require('../controllers/vendor/walletController/get
 const { createWalletRequest } = require('../controllers/vendor/walletController/createWalletRequest');
 const { getWalletRequest } = require('../controllers/vendor/walletController/getWalletRequest');
 const { getVendorWalletHistory } = require('../controllers/vendor/walletController/getVendorWalletHistory');
-const { getShopWalletHistory } = require('../controllers/vendor/walletController/getShopWalletHistory');
+const { getShopWalletHistory, getOrderWiseWalletHistory } = require('../controllers/vendor/walletController/getShopWalletHistory');
 const { changeOrderStatus } = require('../controllers/vendor/orderController/changeOrderStatus');
 const { getAllCoupons } = require('../controllers/vendor/couponController/getAllCoupon');
 const { updateCoupon } = require('../controllers/vendor/couponController/updateCoupon');
 const { deleteCoupon } = require('../controllers/vendor/couponController/deleteCoupon');
 const { statusNightCafe } = require('../controllers/vendor/shopController/statusNightCafe');
+const { submitQuery } = require('../controllers/vendor/queryController/submitQuery');
+const { getQueries } = require('../controllers/vendor/queryController/getQueries');
 const { updateCopyProductRecommended } = require('../controllers/vendor/copyProductController/updateCopyProductRecommended');
 const { createVendorProduct } = require('../controllers/vendor/vendorProductController/createVendorProduct');
 const { getToppins } = require('../controllers/vendor/toppinsController/getToppins');
@@ -68,6 +70,7 @@ const { getCounts } = require('../controllers/vendor/dashboardController/getCoun
 const { getSalesChart } = require('../controllers/vendor/dashboardController/getSalesChart');
 const { getOrderChart } = require('../controllers/vendor/dashboardController/getOrderChart');
 const { getEarningChart } = require('../controllers/vendor/dashboardController/getEarningChart');
+const { getRecentOrders } = require('../controllers/vendor/dashboardController/recentOrders');
 const { orderDetails } = require('../controllers/vendor/orderController/orderDetails');
 const newOrderinvoicePDF = require('../controllers/vendor/orderController/newOrderinvoice');
 const { showDeletePage } = require('../controllers/vendor/authController/showDeletePage');
@@ -126,6 +129,7 @@ router.get('/dashboard/counts', vendorAuthenticate, getCounts);
 router.get('/dashboard/sales', vendorAuthenticate, getSalesChart);
 router.get('/dashboard/orders', vendorAuthenticate, getOrderChart);
 router.get('/dashboard/earnings', vendorAuthenticate, getEarningChart);
+router.get('/dashboard/recent-orders', vendorAuthenticate, getRecentOrders);
 
 //------------------------------------------------
 // shop
@@ -289,8 +293,9 @@ router.post(
 //------------------------------------------------
 
 router.get('/wallet', vendorAuthenticate, getVendorWallet);
-router.get('/shops/wallets', vendorAuthenticate, getAllShopWallet);
-router.get('/shop/:shopId/wallet/history', vendorAuthenticate, getShopWalletHistory);
+// router.get('/shops/wallets', vendorAuthenticate, getAllShopWallet);
+// router.get('/shop/:shopId/wallet/history', vendorAuthenticate, getShopWalletHistory);
+router.get('/order/wallet/history', vendorAuthenticate, getOrderWiseWalletHistory);
 router.get('/wallet/history', vendorAuthenticate, getVendorWalletHistory);
 // router.post("/admin/vendor/:vendorId/wallet/settle", adminAuthenticate, settleVendorWallet); this is for admin
 // router.get("/wallet/settlements", vendorAuthenticate, getVendorWalletSettlements);
@@ -315,6 +320,12 @@ router.get('/order/details/:orderId', vendorAuthenticate, orderDetails);
 // invoice
 //------------------------------------------------
 router.get('/invoice/:orderId', newOrderinvoicePDF);
+
+//------------------------------------------------
+// query
+//------------------------------------------------
+router.post('/query', vendorAuthenticate, submitQuery);
+router.get('/queries', vendorAuthenticate, getQueries);
 
 //------------------------------------------------
 // delete vendor

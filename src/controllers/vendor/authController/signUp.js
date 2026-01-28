@@ -4,7 +4,33 @@ const catchAsync = require('../../../utils/catchAsync');
 const bcrypt = require('bcrypt');
 
 exports.signUp = catchAsync(async (req, res, next) => {
-  let { name, userId, password, mobile, alternateMobile, benificiaryName, email, panNo, gstNo, foodLicense, ifsc, bankName, branchName, accountNo, agreement, deviceId, deviceToken, address, pincode, city, state, latitude, longitude, deliveryCharge, packingCharge } = req.body;
+  let {
+    name,
+    userId,
+    password,
+    mobile,
+    alternateMobile,
+    benificiaryName,
+    email,
+    panNo,
+    gstNo,
+    foodLicense,
+    ifsc,
+    bankName,
+    branchName,
+    accountNo,
+    agreement,
+    deviceId,
+    deviceToken,
+    address,
+    pincode,
+    city,
+    state,
+    latitude,
+    longitude,
+    deliveryCharge,
+    packingCharge
+  } = req.body;
 
   const files = req.files;
   const profileImg = files.profileImg && files.profileImg[0] ? files.profileImg[0].path : '';
@@ -35,7 +61,7 @@ exports.signUp = catchAsync(async (req, res, next) => {
   var hashPassword = await bcrypt.hash(password, 12);
 
   const location = {
-    type: "Point",
+    type: 'Point',
     coordinates: [longitude, latitude]
   };
 
@@ -69,6 +95,12 @@ exports.signUp = catchAsync(async (req, res, next) => {
     location,
     deliveryCharge,
     packingCharge
+  });
+
+  io.to('admin').emit('new-vendor-registerd', {
+    _id: newVendor._id,
+    vendorName: newVendor.name,
+    pincode: newVendor.pincode
   });
 
   return res.status(201).json({

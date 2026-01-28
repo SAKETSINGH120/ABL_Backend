@@ -1,58 +1,44 @@
-const { mongoose } = require("mongoose");
-const catchAsync = require("../../../utils/catchAsync");
-const newOrder = require("../../../models/newOrder");
+const { mongoose } = require('mongoose');
+const catchAsync = require('../../../utils/catchAsync');
+const newOrder = require('../../../models/newOrder');
 
 exports.getOrderChart = catchAsync(async (req, res) => {
-    const vendorId = req.vendor.id;
-    const range = parseInt(req.query.range) || 7;
+  const vendorId = req.vendor.id;
+  const range = parseInt(req.query.range) || 7;
 
-    // Calculate UTC-based start date
-    const now = new Date();
-    const startDate = new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()); // start of today UTC
-    startDate.setDate(startDate.getDate() - (range - 1));
+  // Calculate UTC-based start date
+  const now = new Date();
+  const startDate = new Date(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()); // start of today UTC
+  startDate.setDate(startDate.getDate() - (range - 1));
 
-    // console.log("Date range filter from (UTC):", startDate.toISOString());
+  // console.log("Date range filter from (UTC):", startDate.toISOString());
 
-    const aggregation = await newOrder.aggregate([
-        {
-            $match: {
-                vendorId: new mongoose.Types.ObjectId(vendorId),
-                createdAt: { $gte: startDate }
-            }
-        },
-        {
-            $group: {
-                _id: "$serviceType", // group by serviceType
-                count: { $sum: 1 },
-                amount: { $sum: "$finalTotalPrice" }
-            }
-        }
-    ]);
+  const aggregation = await newOrder.aggregate([
+    {
+      $match: {
+        vendorId: new mongoose.Types.ObjectId(vendorId),
+        createdAt: { $gte: startDate }
+      }
+    },
+    {
+      $group: {
+        _id: null,
+        count: { $sum: 1 },
+        amount: { $sum: '$finalTotalPrice' }
+      }
+    }
+  ]);
 
-    // Default data
-    let foodData = { name: "Food Orders", count: 0, amount: 0 };
-    let martData = { name: "Mart Orders", count: 0, amount: 0 };
-
-    aggregation.forEach(entry => {
-        if (entry._id === "food") {
-            foodData.count = entry.count;
-            foodData.amount = entry.amount;
-        } else if (entry._id === "grocery") {
-            martData.count = entry.count;
-            martData.amount = entry.amount;
-        }
-    });
-
-    res.status(200).json({
-        success: true,
-        message: "Order chart fetched",
-        data: [foodData, martData]
-    });
+  res.status(200).json({
+    success: true,
+    message: 'Order chart fetched',
+    data: [{
+      name: 'Total Orders',
+      count: aggregation.length > 0 ? aggregation[0].count : 0,
+      amount: aggregation.length > 0 ? aggregation[0].amount : 0
+    }]
+  });
 });
-
-
-
-
 
 // const catchAsync = require("../../../utils/catchAsync");
 

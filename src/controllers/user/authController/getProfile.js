@@ -24,7 +24,8 @@ exports.getProfile = catchAsync(async (req, res) => {
                 email: user.email,
                 profileImage: user.profileImage,
                 status: user.status,
-                createdAt: user.createdAt
+                createdAt: user.createdAt,
+                wallet: user.wallet
             }
         });
 

@@ -4,6 +4,7 @@ const newCart = require("../../../models/newCart");
 const razorpaySecret = process.env.RAZORPAY_KEY_SECRET;
 const razorpay = require("../../../utils/razorpayInstance");
 const VendorProduct = require("../../../models/vendorProduct");
+const User = require("../../../models/user");
 
 async function deductStock(products) {
     const deducted = [];
@@ -16,8 +17,12 @@ async function deductStock(products) {
                 result = await VendorProduct.updateOne(
                     {
                         _id: item.productId,
-                        "variants.variantTypeId": item.variantId,
-                        "variants.stock": { $gte: item.quantity }
+                        variants: {
+                            $elemMatch: {
+                                _id: item.variantId,
+                                stock: { $gte: item.quantity }
+                            }
+                        }
                     },
                     {
                         $inc: { "variants.$.stock": -item.quantity }
@@ -61,21 +66,26 @@ async function refundRazorpay(paymentId, amount) {
 
 async function restock(products) {
     for (const item of products) {
+        let result;
         if (item.variantId) {
-            await VendorProduct.updateOne(
+            result = await VendorProduct.updateOne(
                 {
                     _id: item.productId,
-                    "variants.variantTypeId": item.variantId
+                    variants: { $elemMatch: { _id: item.variantId } }
                 },
                 {
                     $inc: { "variants.$.stock": item.quantity }
                 }
             );
         } else {
-            await VendorProduct.updateOne(
+            result = await VendorProduct.updateOne(
                 { _id: item.productId },
                 { $inc: { stock: item.quantity } }
             );
+        }
+
+        if (result.modifiedCount === 0) {
+            console.warn(`Restock failed for product ${item.productId} (Variant: ${item.variantId || 'N/A'}). Item might be deleted.`);
         }
     }
 }
@@ -121,12 +131,13 @@ const verifyPayment = async (req, res) => {
         order.orderStatus = "accepted";
         await order.save();
         await newCart.updateOne({ userId: order.userId, status: "active" }, { status: "ordered" });
+        const user = await User.findById(order.userId);
         io.to(`vendor-${order.vendorId}`).emit("new-order", {
             _id: order._id,
             customerName: user.name,
-            items: products,
+            items: order.productData,
             shopName: "",
-            total: finalTotalPrice,
+            total: order.finalTotalPrice,
         });
 
         return res.status(200).json({

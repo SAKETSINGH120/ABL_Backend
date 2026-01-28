@@ -471,38 +471,75 @@ exports.createNewOrder = async (req, res) => {
 };
 */
 
-async function deductStockForWallet(products) {
+async function restock(products) {
   for (const item of products) {
+    let result;
     if (item.variantId) {
-      const result = await VendorProduct.updateOne(
+      result = await VendorProduct.updateOne(
         {
           _id: item.productId,
-          "variants.variantTypeId": item.variantId,
-          "variants.stock": { $gte: item.quantity }
+          variants: { $elemMatch: { _id: item.variantId } }
         },
         {
-          $inc: { "variants.$.stock": -item.quantity }
+          $inc: { "variants.$.stock": item.quantity }
         }
       );
-
-      if (result.modifiedCount === 0) {
-        throw new Error("Variant stock deduction failed");
-      }
     } else {
-      const result = await VendorProduct.updateOne(
-        {
-          _id: item.productId,
-          stock: { $gte: item.quantity }
-        },
-        {
-          $inc: { stock: -item.quantity }
-        }
+      result = await VendorProduct.updateOne(
+        { _id: item.productId },
+        { $inc: { stock: item.quantity } }
       );
-
-      if (result.modifiedCount === 0) {
-        throw new Error("Product stock deduction failed");
-      }
     }
+
+    if (result.modifiedCount === 0) {
+      console.warn(`Restock (Wallet) failed for product ${item.productId} (Variant: ${item.variantId || 'N/A'}). Item might be deleted.`);
+    }
+  }
+}
+
+async function deductStockForWallet(products) {
+  const deducted = [];
+  try {
+    for (const item of products) {
+      if (item.variantId) {
+        const result = await VendorProduct.updateOne(
+          {
+            _id: item.productId,
+            variants: {
+              $elemMatch: {
+                _id: item.variantId,
+                stock: { $gte: item.quantity }
+              }
+            }
+          },
+          {
+            $inc: { "variants.$.stock": -item.quantity }
+          }
+        );
+
+        if (result.modifiedCount === 0) {
+          throw new Error("Variant stock deduction failed");
+        }
+      } else {
+        const result = await VendorProduct.updateOne(
+          {
+            _id: item.productId,
+            stock: { $gte: item.quantity }
+          },
+          {
+            $inc: { stock: -item.quantity }
+          }
+        );
+
+        if (result.modifiedCount === 0) {
+          throw new Error("Product stock deduction failed");
+        }
+      }
+      deducted.push(item);
+    }
+  } catch (err) {
+    await restock(deducted);
+    throw err;
   }
 }
 
@@ -571,7 +608,7 @@ exports.createNewOrder = async (req, res) => {
       // Variant product
       if (item.variantId) {
         const variant = product.variants.find(
-          v => v.variantTypeId?.toString() === item.variantId.toString()
+          v => v._id?.toString() === item.variantId.toString()
         );
 
         if (!variant) {
@@ -583,7 +620,7 @@ exports.createNewOrder = async (req, res) => {
           continue;
         }
 
-        if (variant.stock < item.quantity) {
+        if (Number(variant.stock) < item.quantity) {
           outOfStock.push({
             productId: item.productId,
             variantId: item.variantId,
@@ -594,7 +631,7 @@ exports.createNewOrder = async (req, res) => {
       }
       // Simple product
       else {
-        if (product.stock < item.quantity) {
+        if (Number(product.stock) < item.quantity) {
           outOfStock.push({
             productId: item.productId,
             availableStock: product.stock,
@@ -722,10 +759,11 @@ exports.createNewOrder = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      orderId: order._id,
-      razorpayOrderId: razorpayOrder?.id || null,
+      orderId: razorpayOrder?.id || null,
       amount: razorpayOrder?.amount || finalTotalPrice,
-      currency: "INR"
+      currency: razorpayOrder?.currency || "INR",
+      userData: user,
+      id: order._id,
     });
   } catch (error) {
     console.error("Create Order Error:", error);

@@ -5,9 +5,9 @@ const brandSchema = mongoose.Schema({
         type: String,
         required: true,
     },
-   image: {
-    type: String,
-   },
+    image: {
+        type: String,
+    },
     status: {
         type: String,
         enum: ["active", "inactive"],
