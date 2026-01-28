@@ -9,7 +9,7 @@ const getDistanceAndTime = require('../../../utils/getDistanceAndTime');
 exports.orderList = catchAsync(async (req, res, next) => {
   try {
     const driverId = req.driver._id;
-    const type = req.query.type || 'all';
+    const type = req.query.type.toString().trim() || 'all';
     const days = req.query.days; // send days from query like 1, 7 etc.
 
     let filter = { assignedDriver: driverId };
@@ -76,6 +76,8 @@ exports.orderList = catchAsync(async (req, res, next) => {
 
         const totalKm = parseKm(driverToVendor.distance) + parseKm(vendorToUser.distance);
 
+        const productCount = ord.productData.reduce((total, prod) => total + (prod.quantity || 0), 0);
+
         return {
           _id: ord._id,
           bookingId: ord.booking_id,
@@ -99,7 +101,8 @@ exports.orderList = catchAsync(async (req, res, next) => {
             long: ord.addressId.location.coordinates[0],
             city: ord.addressId.city,
             pincode: ord.addressId.pincode,
-            state: ord.addressId.state
+            state: ord.addressId.state,
+            deliveryInsturction: ''
           },
           products: ord.productData.map((prod) => ({
             name: prod.productId?.name || 'product name',
@@ -112,7 +115,8 @@ exports.orderList = catchAsync(async (req, res, next) => {
           totalAmount: ord.finalTotalPrice,
           paymentMode: ord.paymentMode,
           createdAt: ord.createdAt,
-          totalKm: Math.ceil(totalKm)
+          totalKm: Math.ceil(totalKm),
+          productCount: productCount
         };
       })
     );

@@ -30,34 +30,41 @@ const { verifyOtp } = require('../controllers/driver/auth/verifyOtp');
 // auth
 //------------------------------------------------
 // Register Driver
-router.post("/register", fileUploader("driver", [
-  { name: "image", maxCount: 1 },
-  { name: "profileImage", maxCount: 1 },
-  { name: "vehicleRcFrontImage", maxCount: 1 },
-  { name: "vehicleRcBackImage", maxCount: 1 }, { name: "idProofImage", maxCount: 1 },
-  { name: "insuranceImage", maxCount: 1 },
-  { name: "passbook", maxCount: 1 },
-  { name: "licenseImage", maxCount: 1 },
-  { name: "adharImage", maxCount: 1 }
-]),
+router.post(
+  '/register',
+  fileUploader('driver', [
+    { name: 'image', maxCount: 1 },
+    { name: 'profileImage', maxCount: 1 },
+    { name: 'vehicleRcFrontImage', maxCount: 1 },
+    { name: 'vehicleRcBackImage', maxCount: 1 },
+    { name: 'idProofImage', maxCount: 1 },
+    { name: 'insuranceImage', maxCount: 1 },
+    { name: 'passbook', maxCount: 1 },
+    { name: 'licenseImage', maxCount: 1 },
+    { name: 'adharImage', maxCount: 1 }
+  ]),
   registerDriver
 );
 
 // Login Driver
-router.post("/login", loginDriver);
-router.post("/verifyOtp", verifyOtp);
+router.post('/login', loginDriver);
+router.post('/verifyOtp', verifyOtp);
 
 // Update Profile
-router.patch("/profile", driverAuthenticate, fileUploader("driver", [
-  { name: "image", maxCount: 1 },
-  { name: "vehicleRcFrontImage", maxCount: 1 },
-  { name: "vehicleRcBackImage", maxCount: 1 }, { name: "idProofImage", maxCount: 1 },
-  { name: "insuranceImage", maxCount: 1 },
-  { name: "passbook", maxCount: 1 },
-  { name: "licenseImage", maxCount: 1 },
-  { name: "adharImage", maxCount: 1 },
-  { name: "profileImage", maxCount: 1 },
-]),
+router.patch(
+  '/profile',
+  driverAuthenticate,
+  fileUploader('driver', [
+    { name: 'image', maxCount: 1 },
+    { name: 'vehicleRcFrontImage', maxCount: 1 },
+    { name: 'vehicleRcBackImage', maxCount: 1 },
+    { name: 'idProofImage', maxCount: 1 },
+    { name: 'insuranceImage', maxCount: 1 },
+    { name: 'passbook', maxCount: 1 },
+    { name: 'licenseImage', maxCount: 1 },
+    { name: 'adharImage', maxCount: 1 },
+    { name: 'profileImage', maxCount: 1 }
+  ]),
   updateProfile
 );
 router.get('/profile', driverAuthenticate, getProfile);
@@ -83,7 +90,7 @@ router.get('/home', driverAuthenticate, getHomeData);
 //------------------------------------------------
 router.get('/orders', driverAuthenticate, orderList);
 router.get('/order/:orderId', driverAuthenticate, orderDetails);
-router.patch('/order/:orderId', fileUploader('delivery', [{ name: 'deliveryProofImage', maxCount: 1 }]), orderStatusChange);
+router.patch('/order/:orderId', driverAuthenticate, fileUploader('delivery', [{ name: 'deliveryProofImage', maxCount: 1 }]), orderStatusChange);
 
 //------------------------------------------------
 // wallet
